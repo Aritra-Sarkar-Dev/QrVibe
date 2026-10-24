@@ -17,6 +17,8 @@ jobs:
             node-version: 22
       - run: npm install --legacy-peer-deps
       - run: npm run build
+      - run: cp public/sitemap.xml dist/sitemap.xml
+      - run: cp public/robots.txt dist/robots.txt
         env:
           VITE_IMGBB_API_KEY: ${{ secrets.VITE_IMGBB_API_KEY }}
       - uses: actions/upload-pages-artifact@v3
