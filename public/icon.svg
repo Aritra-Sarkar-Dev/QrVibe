@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b0813" />
+      <stop offset="50%" stop-color="#1e1035" />
+      <stop offset="100%" stop-color="#0a192f" />
+    </linearGradient>
+    <linearGradient id="vibegrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d946ef" />
+      <stop offset="50%" stop-color="#8b5cf6" />
+      <stop offset="100%" stop-color="#06b6d4" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+  <rect width="512" height="512" rx="112" fill="url(#bg)" />
+  <rect x="24" y="24" width="464" height="464" rx="92" fill="none" stroke="url(#vibegrad)" stroke-width="4" opacity="0.4" />
+  
+  <!-- Outer Finder 1 (Top Left) -->
+  <rect x="96" y="96" width="100" height="100" rx="24" fill="none" stroke="url(#vibegrad)" stroke-width="16" />
+  <rect x="126" y="126" width="40" height="40" rx="10" fill="url(#vibegrad)" filter="url(#glow)" />
+  
+  <!-- Outer Finder 2 (Top Right) -->
+  <rect x="316" y="96" width="100" height="100" rx="24" fill="none" stroke="url(#vibegrad)" stroke-width="16" />
+  <rect x="346" y="126" width="40" height="40" rx="10" fill="url(#vibegrad)" filter="url(#glow)" />
+  
+  <!-- Outer Finder 3 (Bottom Left) -->
+  <rect x="96" y="316" width="100" height="100" rx="24" fill="none" stroke="url(#vibegrad)" stroke-width="16" />
+  <rect x="126" y="346" width="40" height="40" rx="10" fill="url(#vibegrad)" filter="url(#glow)" />
+  
+  <!-- QR Pattern Stylized Dots / Cyber Wave -->
+  <circle cx="256" cy="146" r="16" fill="#06b6d4" />
+  <circle cx="256" cy="206" r="16" fill="#8b5cf6" />
+  <circle cx="206" cy="256" r="16" fill="#d946ef" />
+  <circle cx="256" cy="256" r="22" fill="url(#vibegrad)" filter="url(#glow)" />
+  <circle cx="306" cy="256" r="16" fill="#06b6d4" />
+  <circle cx="146" cy="256" r="14" fill="#a855f7" />
+  <circle cx="366" cy="256" r="14" fill="#ec4899" />
+  
+  <!-- Modern Spark / Vibe mark in bottom right -->
+  <path d="M 330 330 L 366 316 L 380 352 L 416 338 L 402 374 L 438 388 L 392 416 L 366 380 L 330 394 Z" fill="url(#vibegrad)" opacity="0.9" />
+</svg>

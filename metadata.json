@@ -1,0 +1,6 @@
+{
+  "name": "QRVibe - Gen Z All-in-One QR Code Generator & Studio",
+  "description": "Free, aesthetic, all-in-one QR code generator with presets, custom dot styles, gradients, logos, bulk generation, and high-res export.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
