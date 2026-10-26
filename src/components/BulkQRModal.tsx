@@ -57,7 +57,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
   );
 
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
-  const [progress, setProgress] = useState<number>(0);
+  const [progressPercentage, setProgressPercentage] = useState<number>(0);
   const [currentStage, setCurrentStage] = useState<'idle' | 'rendering' | 'zipping' | 'completed'>('idle');
   const [statusMessage, setStatusMessage] = useState<string>('');
   const [itemsQueue, setItemsQueue] = useState<ItemQueueState[]>([]);
@@ -118,7 +118,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
       // Reset past results if new file is loaded
       setZipResult(null);
       setCurrentStage('idle');
-      setProgress(0);
+      setProgressPercentage(0);
     };
     reader.readAsText(file);
   };
@@ -138,7 +138,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
     cleanupObjectUrls();
     isCancelledRef.current = false;
     setIsGenerating(true);
-    setProgress(5);
+    setProgressPercentage(5);
     setCurrentStage('rendering');
     setZipResult(null);
 
@@ -240,7 +240,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
 
         // Progress up to 70%
         const phase1Percent = Math.round(((i + 1) / activeRows.length) * 70);
-        setProgress(phase1Percent);
+        setProgressPercentage(phase1Percent);
       }
 
       if (isCancelledRef.current) return;
@@ -266,7 +266,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
           if (isCancelledRef.current) return;
           const zipPortion = (metadata.percent / 100) * 30;
           const totalProgress = Math.min(100, Math.round(70 + zipPortion));
-          setProgress(totalProgress);
+          setProgressPercentage(totalProgress);
           if (metadata.currentFile) {
             setStatusMessage(`Compressing: ${metadata.currentFile} (${Math.round(metadata.percent)}%)`);
           }
@@ -275,7 +275,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
 
       if (isCancelledRef.current) return;
 
-      setProgress(100);
+      setProgressPercentage(100);
       setCurrentStage('completed');
       setStatusMessage('Batch complete! ZIP package generated successfully.');
 
@@ -323,7 +323,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
     cleanupObjectUrls();
     setZipResult(null);
     setCurrentStage('idle');
-    setProgress(0);
+    setProgressPercentage(0);
     setItemsQueue([]);
     setStatusMessage('');
   };
@@ -455,16 +455,23 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
                   {/* Percentage Display */}
                   <div className="text-right shrink-0">
                     <span className="text-2xl sm:text-3xl font-black font-mono text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-violet-300 to-cyan-400">
-                      {progress}%
+                      {progressPercentage}%
                     </span>
                   </div>
                 </div>
 
                 {/* Animated Progress Bar */}
-                <div className="relative w-full h-3 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5">
+                <div
+                  role="progressbar"
+                  aria-valuenow={progressPercentage}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Bulk QR Generation Progress"
+                  className="relative w-full h-3 rounded-full bg-black/60 border border-white/10 overflow-hidden p-0.5"
+                >
                   <div
                     className="h-full rounded-full bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 transition-all duration-300 ease-out relative"
-                    style={{ width: `${progress}%` }}
+                    style={{ width: `${progressPercentage}%` }}
                   >
                     {/* Animated Shimmer Stripe */}
                     {isGenerating && (
@@ -480,7 +487,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
                       className={`w-2 h-2 rounded-full ${
                         currentStage === 'rendering'
                           ? 'bg-cyan-400 animate-ping'
-                          : progress >= 70
+                          : progressPercentage >= 70
                           ? 'bg-emerald-400'
                           : 'bg-slate-600'
                       }`}
@@ -492,7 +499,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
                       className={`w-2 h-2 rounded-full ${
                         currentStage === 'zipping'
                           ? 'bg-fuchsia-400 animate-ping'
-                          : progress === 100
+                          : progressPercentage === 100
                           ? 'bg-emerald-400'
                           : 'bg-slate-600'
                       }`}

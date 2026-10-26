@@ -1,43 +1,11 @@
 /**
- * ImgBB Image Upload and Client-side Compression Engine
+ * ImgBB Client-Side Compression and Secure Server-Side Upload Integration
  *
- * SECURITY NOTICE:
- * In a high-traffic production application, direct browser-to-ImgBB API calls expose
- * the API key in client network requests. Before deploying to public production traffic,
- * route these uploads through a lightweight serverless proxy (such as a Cloudflare Worker,
- * Netlify Function, or Express server route) to keep API secrets secure.
+ * SECURITY ARCHITECTURE:
+ * - Direct browser-to-ImgBB calls have been eliminated to prevent credential exposure.
+ * - All uploads are routed securely through the /api/upload server-side endpoint.
+ * - Private API keys are never stored in localStorage, sessionStorage, or client bundles.
  */
-
-export const DEFAULT_IMGBB_API_KEY = 'c665a482e29533e552e59e66bf8b07bc';
-
-export function getStoredImgbbKey(): string {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      const saved = window.localStorage.getItem('qrvibe_imgbb_key');
-      if (saved && saved.trim()) return saved.trim();
-    }
-  } catch {
-    // localStorage may be unavailable
-  }
-  return (
-    (import.meta.env.VITE_IMGBB_API_KEY as string | undefined) ||
-    (import.meta.env.IMGBB_API_KEY as string | undefined) ||
-    DEFAULT_IMGBB_API_KEY
-  );
-}
-
-export function setStoredImgbbKey(key: string): void {
-  try {
-    if (typeof window !== 'undefined' && window.localStorage) {
-      window.localStorage.setItem('qrvibe_imgbb_key', key.trim());
-    }
-  } catch {
-    // ignore
-  }
-}
-
-// Config constant with environment variable fallback and user provided key
-export const IMGBB_API_KEY = getStoredImgbbKey();
 
 export interface UploadProgressCallback {
   (percentage: number): void;
@@ -51,20 +19,119 @@ export interface UploadResult {
   error?: string;
 }
 
+export interface UploadServiceStatus {
+  configured: boolean;
+  service: string;
+  status: 'available' | 'unavailable';
+  message: string;
+}
+
 /**
- * Compresses an image client-side before upload to reduce payload size and upload time.
- * Max dimension: 1920px. Target format: JPEG (quality 0.82).
+ * Checks server-side upload service health and configuration status.
+ * Never exposes API keys or credentials.
  */
-export async function compressImage(file: File, maxDimension = 1920): Promise<Blob> {
+export async function checkUploadServiceStatus(): Promise<UploadServiceStatus> {
+  try {
+    const res = await fetch('/api/status', {
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) {
+      return {
+        configured: false,
+        service: 'imgbb',
+        status: 'unavailable',
+        message: 'Upload service responded with an error.',
+      };
+    }
+    const data = await res.json();
+    return {
+      configured: Boolean(data?.configured),
+      service: data?.service || 'imgbb',
+      status: data?.status === 'available' ? 'available' : 'unavailable',
+      message: data?.message || 'Status check complete.',
+    };
+  } catch {
+    return {
+      configured: false,
+      service: 'imgbb',
+      status: 'unavailable',
+      message: 'Unable to connect to upload service.',
+    };
+  }
+}
+
+/**
+ * Validates a direct image URL for the Direct Image URL workflow.
+ * Enforces HTTPS/HTTP, rejects untrusted schemes (javascript:, data:, file:)
+ * and prevents SSRF by processing the URL purely on the client.
+ */
+export function validateDirectImageUrl(rawUrl: string): {
+  isValid: boolean;
+  url: string;
+  error?: string;
+} {
+  const trimmed = rawUrl.trim();
+  if (!trimmed) {
+    return { isValid: false, url: '', error: 'Please enter an image URL.' };
+  }
+
+  // Reject dangerous schemes
+  const lower = trimmed.toLowerCase();
+  if (
+    lower.startsWith('javascript:') ||
+    lower.startsWith('data:') ||
+    lower.startsWith('blob:') ||
+    lower.startsWith('file:')
+  ) {
+    return {
+      isValid: false,
+      url: '',
+      error: 'Invalid URL format. Please use a valid web link starting with https://.',
+    };
+  }
+
+  const urlWithProtocol = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+
+  try {
+    const parsed = new URL(urlWithProtocol);
+    const hasValidHost = parsed.hostname.includes('.') && parsed.hostname.length >= 4;
+    const hasValidProtocol = ['http:', 'https:'].includes(parsed.protocol);
+
+    if (!hasValidHost || !hasValidProtocol) {
+      return {
+        isValid: false,
+        url: urlWithProtocol,
+        error: 'Please enter a valid website hostname (e.g. https://images.unsplash.com/photo.jpg).',
+      };
+    }
+
+    return {
+      isValid: true,
+      url: urlWithProtocol,
+    };
+  } catch {
+    return {
+      isValid: false,
+      url: trimmed,
+      error: 'Malformed URL. Please check the address format.',
+    };
+  }
+}
+
+/**
+ * Compresses an image client-side before upload to reduce network latency and payload size.
+ * Max dimension: 1920px. Target format: JPEG (quality 0.85).
+ */
+export async function compressImage(fileOrBlob: File | Blob, maxDimension = 1920): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    // If file is already small (under 800KB), return as-is
-    if (file.size <= 800 * 1024 && ['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      resolve(file);
+    // If file is already small (under 600KB) and in supported format, return as-is
+    if (fileOrBlob.size <= 600 * 1024 && ['image/jpeg', 'image/png', 'image/webp'].includes(fileOrBlob.type)) {
+      resolve(fileOrBlob);
       return;
     }
 
     const img = new Image();
-    const objectUrl = URL.createObjectURL(file);
+    const objectUrl = URL.createObjectURL(fileOrBlob);
 
     img.onload = () => {
       URL.revokeObjectURL(objectUrl);
@@ -86,11 +153,10 @@ export async function compressImage(file: File, maxDimension = 1920): Promise<Bl
       const ctx = canvas.getContext('2d');
 
       if (!ctx) {
-        resolve(file);
+        resolve(fileOrBlob);
         return;
       }
 
-      // Draw with smooth scaling
       ctx.imageSmoothingEnabled = true;
       ctx.imageSmoothingQuality = 'high';
       ctx.drawImage(img, 0, 0, width, height);
@@ -100,7 +166,7 @@ export async function compressImage(file: File, maxDimension = 1920): Promise<Bl
           if (blob) {
             resolve(blob);
           } else {
-            resolve(file);
+            resolve(fileOrBlob);
           }
         },
         'image/jpeg',
@@ -118,48 +184,50 @@ export async function compressImage(file: File, maxDimension = 1920): Promise<Bl
 }
 
 /**
- * Uploads an image to ImgBB using multipart/form-data.
- * Handles progress simulation and returns the hosted URL.
+ * Converts a Blob or File to a Base64 string for transmission
+ */
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const result = reader.result as string;
+      resolve(result);
+    };
+    reader.onerror = () => reject(new Error('Failed to convert image to base64.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
+/**
+ * Uploads an image securely via the server-side proxy endpoint (/api/upload).
+ * Never uses or requires a client-side API key.
  */
 export async function uploadToImgBB(
   fileOrBlob: File | Blob,
   onProgress?: UploadProgressCallback,
-  overrideKey?: string
+  fileName?: string
 ): Promise<UploadResult> {
-  // Check if API key is configured
-  const apiKey = (overrideKey || getStoredImgbbKey()).trim();
-  const isPlaceholder = apiKey === 'PASTE_YOUR_IMGBB_KEY_HERE' || !apiKey;
-
-  if (isPlaceholder) {
-    onProgress?.(40);
-    await new Promise((r) => setTimeout(r, 300));
-    onProgress?.(80);
-    await new Promise((r) => setTimeout(r, 200));
-    onProgress?.(100);
-
-    return {
-      success: true,
-      url: `https://i.ibb.co/demo-qr-vibe/${Date.now()}.jpg`,
-      displayUrl: URL.createObjectURL(fileOrBlob),
-      error:
-        'Notice: Running with preview mock link. To enable direct live ImgBB hosting, set your ImgBB API key.',
-    };
-  }
-
   try {
     onProgress?.(15);
-    const formData = new FormData();
-    formData.append('image', fileOrBlob);
 
-    // XMLHttpRequest allows real upload progress tracking
+    // 1. Client-side compression
+    const compressedBlob = await compressImage(fileOrBlob);
+    onProgress?.(30);
+
+    // 2. Convert to base64 data URL
+    const base64Data = await blobToBase64(compressedBlob);
+    onProgress?.(45);
+
+    // 3. Send to server-side endpoint with progress tracking
     return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `https://api.imgbb.com/1/upload?key=${encodeURIComponent(apiKey)}`);
+      xhr.open('POST', '/api/upload');
+      xhr.setRequestHeader('Content-Type', 'application/json');
 
       xhr.upload.onprogress = (event) => {
         if (event.lengthComputable) {
-          const percent = Math.round((event.loaded / event.total) * 90);
-          onProgress?.(Math.min(percent, 90));
+          const percent = Math.round(45 + (event.loaded / event.total) * 50);
+          onProgress?.(Math.min(percent, 95));
         }
       };
 
@@ -170,24 +238,24 @@ export async function uploadToImgBB(
           if (xhr.status >= 200 && xhr.status < 300 && res.success) {
             resolve({
               success: true,
-              url: res.data.url,
-              displayUrl: res.data.display_url || res.data.url,
+              url: res.url,
+              displayUrl: res.display_url || res.url,
             });
           } else {
             const errorMsg =
-              res.error?.message ||
-              `Upload failed with status code ${xhr.status}.`;
+              res.error ||
+              (xhr.status === 503
+                ? 'Image upload service is not configured on the server. Please configure IMGBB_API_KEY in Vercel environment variables.'
+                : `Upload failed with status code ${xhr.status}.`);
             resolve({
               success: false,
-              fallbackUrl: `https://i.ibb.co/demo-qr-vibe/${Date.now()}.jpg`,
               error: errorMsg,
             });
           }
         } catch {
           resolve({
             success: false,
-            fallbackUrl: `https://i.ibb.co/demo-qr-vibe/${Date.now()}.jpg`,
-            error: 'Invalid response from ImgBB server.',
+            error: 'Invalid response from image upload server.',
           });
         }
       };
@@ -195,18 +263,21 @@ export async function uploadToImgBB(
       xhr.onerror = () => {
         resolve({
           success: false,
-          fallbackUrl: `https://i.ibb.co/demo-qr-vibe/${Date.now()}.jpg`,
-          error: 'Network connection error while uploading to ImgBB.',
+          error: 'Network connection error while uploading to the server.',
         });
       };
 
-      xhr.send(formData);
+      const payload = JSON.stringify({
+        image: base64Data,
+        name: fileName || (fileOrBlob instanceof File ? fileOrBlob.name : undefined),
+      });
+
+      xhr.send(payload);
     });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : 'Unknown upload error occurred.';
     return {
       success: false,
-      fallbackUrl: `https://i.ibb.co/demo-qr-vibe/${Date.now()}.jpg`,
       error: message,
     };
   }

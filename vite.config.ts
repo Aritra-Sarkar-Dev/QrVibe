@@ -54,7 +54,7 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
-    envPrefix: ['VITE_', 'IMGBB_'],
+    envPrefix: ['VITE_'],
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',

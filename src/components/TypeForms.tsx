@@ -7,6 +7,7 @@ import {
   RefreshCw,
   MapPin,
   Check,
+  CheckCircle,
   Link as LinkIcon,
   Wifi,
   User,
@@ -30,9 +31,8 @@ import { Translations } from '../utils/i18n.ts';
 import {
   compressImage,
   uploadToImgBB,
-  getStoredImgbbKey,
-  setStoredImgbbKey,
-  DEFAULT_IMGBB_API_KEY,
+  checkUploadServiceStatus,
+  validateDirectImageUrl,
 } from '../utils/imgbb.ts';
 import {
   WifiData,
@@ -75,9 +75,8 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
   // 1. Image Upload State & Mode
   const [imageInputMode, setImageInputMode] = useState<'upload' | 'url'>('upload');
   const [directImageUrl, setDirectImageUrl] = useState<string>('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe');
-  const [customApiKey, setCustomApiKey] = useState<string>(getStoredImgbbKey());
-  const [showApiKeySettings, setShowApiKeySettings] = useState<boolean>(false);
-  const [apiKeyFeedback, setApiKeyFeedback] = useState<string | null>(null);
+  const [directUrlError, setDirectUrlError] = useState<string | null>(null);
+  const [serviceStatus, setServiceStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -87,6 +86,21 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
   const [uploadedUrl, setUploadedUrl] = useState<string | null>('https://i.ibb.co/m7yXKhd/test.png');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  // Purge legacy client-stored keys and check upload service health on mount
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.removeItem('qrvibe_imgbb_key');
+      }
+    } catch {
+      // ignore
+    }
+
+    checkUploadServiceStatus().then((res) => {
+      setServiceStatus(res.status);
+    });
+  }, []);
 
   // 2. Text State
   const [textContent, setTextContent] = useState<string>('Welcome to the future of QR codes ✨');
@@ -164,27 +178,7 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
   const [appStoreType, setAppStoreType] = useState<'ios' | 'android'>('ios');
   const [appId, setAppId] = useState<string>('id123456789');
 
-  // Save custom ImgBB key
-  const handleSaveApiKey = () => {
-    const trimmed = customApiKey.trim();
-    if (!trimmed) {
-      setApiKeyFeedback('Please enter a valid ImgBB API key.');
-      return;
-    }
-    setStoredImgbbKey(trimmed);
-    setApiKeyFeedback('API Key saved successfully! Ready to upload.');
-    setTimeout(() => setApiKeyFeedback(null), 3500);
-  };
-
-  // Reset to default key
-  const handleResetApiKey = () => {
-    setStoredImgbbKey(DEFAULT_IMGBB_API_KEY);
-    setCustomApiKey(DEFAULT_IMGBB_API_KEY);
-    setApiKeyFeedback('Reset to default key.');
-    setTimeout(() => setApiKeyFeedback(null), 3000);
-  };
-
-  // Handle Image Upload Process (Never fails to generate a QR)
+  // Handle Secure Image Upload Process (Proxied through /api/upload)
   const handleProcessImage = async (file: File) => {
     setImageFile(file);
     const previewUrl = URL.createObjectURL(file);
@@ -193,43 +187,34 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
     setIsUploading(true);
     setUploadProgress(15);
 
-    // GUARANTEE: Instantly generate active QR code so user never gets empty state
+    // Provide instant local feedback so user never gets an empty or broken canvas
     const immediateFallbackUrl = `https://i.ibb.co/preview/${Date.now()}.jpg`;
     setUploadedUrl(immediateFallbackUrl);
     onPayloadChange(immediateFallbackUrl, `Image: ${file.name}`);
 
     try {
-      // 1. Client-side compression
-      const compressedBlob = await compressImage(file);
-      setUploadProgress(35);
-
-      // 2. Upload to ImgBB with active key
+      // Upload securely through server-side /api/upload endpoint
       const res = await uploadToImgBB(
-        compressedBlob,
+        file,
         (pct) => {
-          setUploadProgress(Math.max(35, pct));
+          setUploadProgress(pct);
         },
-        customApiKey
+        file.name
       );
 
       if (res.success && res.url) {
         setUploadedUrl(res.url);
         onPayloadChange(res.url, `Image: ${file.name}`);
-        if (res.error) {
-          setUploadError(res.error);
-        }
+        setUploadError(null);
       } else {
-        // Keep QR code active with fallback URL
-        const fallback = res.fallbackUrl || immediateFallbackUrl;
-        setUploadedUrl(fallback);
-        onPayloadChange(fallback, `Image: ${file.name}`);
+        const errorDetail = res.error || 'Upload could not be completed.';
         setUploadError(
-          `ImgBB upload message: ${res.error || 'Service unavailable'}. Your QR code was created with a preview link so it remains active.`
+          `${errorDetail} (A scannable preview QR code was generated with placeholder data).`
         );
       }
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Upload failed.';
-      setUploadError(`Notice: ${msg}. A preview QR code was generated so your code stays active.`);
+      setUploadError(`Notice: ${msg}. A preview QR code was generated.`);
     } finally {
       setIsUploading(false);
     }
@@ -284,11 +269,16 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
       case 'image':
         if (imageInputMode === 'url') {
           const direct = directImageUrl.trim();
+          const { isValid, url, error } = validateDirectImageUrl(
+            direct || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe'
+          );
+          setDirectUrlError(direct && !isValid ? error || 'Invalid URL' : null);
           onPayloadChange(
-            direct || 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe',
+            url,
             'Image Link'
           );
         } else {
+          setDirectUrlError(null);
           if (uploadedUrl) {
             onPayloadChange(
               uploadedUrl,
@@ -533,70 +523,49 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
                   <Clipboard className="w-4 h-4 text-fuchsia-400" />
                   <span>{t.forms.pasteClipboard}</span>
                 </button>
-                <button
-                  type="button"
-                  onClick={() => setShowApiKeySettings(!showApiKeySettings)}
-                  className={`inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border text-xs font-semibold transition ${
-                    showApiKeySettings
-                      ? 'border-violet-500 bg-violet-950/60 text-violet-300'
-                      : 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-300'
-                  }`}
-                  title="Configure ImgBB API Key"
-                >
-                  <Key className="w-4 h-4 text-amber-400" />
-                  <span className="hidden sm:inline">API Key</span>
-                </button>
               </div>
 
-              {/* ImgBB API Key Settings Drawer */}
-              {showApiKeySettings && (
-                <div className="p-3.5 rounded-2xl bg-slate-900/90 border border-amber-500/30 space-y-2.5 text-xs text-slate-300">
-                  <div className="flex items-center justify-between">
-                    <span className="font-semibold text-amber-300 flex items-center gap-1.5">
-                      <Key className="w-3.5 h-3.5" />
-                      ImgBB API Key Settings
-                    </span>
-                    <a
-                      href="https://api.imgbb.com/"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-[11px] text-cyan-400 hover:underline inline-flex items-center gap-0.5"
-                    >
-                      Get free key <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                  <div className="flex gap-2">
-                    <input
-                      type="text"
-                      value={customApiKey}
-                      onChange={(e) => setCustomApiKey(e.target.value)}
-                      placeholder="Paste ImgBB API Key (e.g. c665a482...)"
-                      className="flex-1 px-3 py-1.5 rounded-lg border border-violet-500/30 bg-black/40 text-xs text-white font-mono focus:border-fuchsia-500 outline-none"
+              {/* Secure Image Upload Service Status Card */}
+              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-violet-500/20 space-y-1.5 shadow-sm">
+                <div className="flex items-center justify-between gap-2 flex-wrap">
+                  <div className="flex items-center gap-2">
+                    <div
+                      className={`w-2 h-2 rounded-full ${
+                        serviceStatus === 'available'
+                          ? 'bg-emerald-400 shadow-[0_0_8px_rgba(52,211,153,0.8)] animate-pulse'
+                          : serviceStatus === 'checking'
+                          ? 'bg-slate-400 animate-ping'
+                          : 'bg-amber-400'
+                      }`}
                     />
-                    <button
-                      type="button"
-                      onClick={handleSaveApiKey}
-                      className="py-1.5 px-3 rounded-lg bg-fuchsia-600 hover:bg-fuchsia-500 text-white font-semibold text-xs transition"
-                    >
-                      Save
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handleResetApiKey}
-                      className="py-1.5 px-2.5 rounded-lg border border-white/10 bg-white/5 hover:bg-white/10 text-slate-400 text-xs"
-                      title="Reset to default key"
-                    >
-                      Reset
-                    </button>
+                    <span className="text-xs font-bold text-white font-['Outfit']">Image Upload Service</span>
                   </div>
-                  {apiKeyFeedback && (
-                    <p className="text-[11px] text-emerald-400 font-medium">{apiKeyFeedback}</p>
-                  )}
-                  <p className="text-[10px] text-slate-400">
-                    Your key is stored locally in your browser. Default key: <span className="font-mono text-slate-300">c665a482e...</span>
-                  </p>
+                  <span
+                    className={`text-[10px] font-bold px-2 py-0.5 rounded-full inline-flex items-center gap-1 ${
+                      serviceStatus === 'available'
+                        ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                        : serviceStatus === 'checking'
+                        ? 'bg-white/10 text-slate-300 border border-white/10'
+                        : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                    }`}
+                  >
+                    {serviceStatus === 'available' && <CheckCircle className="w-3 h-3 text-emerald-400" />}
+                    {serviceStatus === 'unavailable' && <AlertCircle className="w-3 h-3 text-amber-400" />}
+                    <span>
+                      {serviceStatus === 'available'
+                        ? 'Service Available'
+                        : serviceStatus === 'checking'
+                        ? 'Checking Status...'
+                        : 'Upload Service Temporarily Unavailable'}
+                    </span>
+                  </span>
                 </div>
-              )}
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  {serviceStatus === 'available'
+                    ? 'Upload an image to generate a shareable image QR code.'
+                    : 'Direct cloud hosting requires IMGBB_API_KEY in server environment variables. You can also paste any hosted image link in Direct Image URL.'}
+                </p>
+              </div>
 
               {/* Upload Progress Bar */}
               {isUploading && (
@@ -637,13 +606,6 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
                         <span>{t.forms.retry}</span>
                       </button>
                     )}
-                    <button
-                      type="button"
-                      onClick={() => setShowApiKeySettings(true)}
-                      className="text-[11px] text-cyan-400 hover:text-cyan-300 underline whitespace-nowrap"
-                    >
-                      Check API Key
-                    </button>
                   </div>
                 </div>
               )}
@@ -672,6 +634,12 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
                 placeholder="https://example.com/photo.jpg or Unsplash link"
                 className="w-full px-3.5 py-2.5 rounded-xl border border-violet-500/30 bg-black/30 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 outline-none text-sm text-white font-mono"
               />
+              {directUrlError && (
+                <div className="p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/30 text-amber-200 text-xs flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-amber-400 shrink-0" />
+                  <span>{directUrlError}</span>
+                </div>
+              )}
               <p className="text-[11px] text-slate-400">
                 Paste any publicly accessible image link (Google Drive, Unsplash, Imgur, Cloudinary, WordPress, etc.). No API key required.
               </p>
