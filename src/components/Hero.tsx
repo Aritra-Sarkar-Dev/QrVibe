@@ -46,15 +46,18 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
 
             {/* Main Headline with clamp and balance */}
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black font-['Outfit'] tracking-tight text-white leading-[1.1] text-balance mb-6">
-              {t.hero.title1}{' '}
+              QR Vibe –{' '}
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-pink-400 to-cyan-400">
-                {t.hero.titleHighlight}
+                Free QR Code Generator
               </span>{' '}
-              {t.hero.title2}
+              Online
             </h1>
 
-            <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-8">
-              {t.hero.subtitle}
+            <p className="text-base sm:text-lg text-slate-300 max-w-2xl mx-auto lg:mx-0 leading-relaxed mb-3">
+              Create free, customized QR codes for text, websites, WiFi, contacts, email, and phone numbers with signature aesthetic gradients and instant PNG, SVG, or PDF downloads.
+            </p>
+            <p className="text-xs sm:text-sm text-slate-400 max-w-xl mx-auto lg:mx-0 leading-normal mb-8">
+              Built for creators, small businesses, and modern menus. 100% free, local-first in your browser, with zero sign-up and permanent unlimited scans.
             </p>
 
             {/* CTAs */}

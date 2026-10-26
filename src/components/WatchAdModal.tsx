@@ -20,34 +20,43 @@ export const WatchAdModal: React.FC<WatchAdModalProps> = ({
   const [isPlaying, setIsPlaying] = useState<boolean>(true);
   const [isCompleted, setIsCompleted] = useState<boolean>(false);
 
+  // Reset state when modal opens
   useEffect(() => {
-    if (!isOpen) {
+    if (isOpen) {
       setSecondsLeft(5);
       setIsPlaying(true);
       setIsCompleted(false);
-      return;
     }
+  }, [isOpen]);
 
-    const timer = setInterval(() => {
-      setSecondsLeft((prev) => {
-        if (prev <= 1) {
-          clearInterval(timer);
-          setIsCompleted(true);
-          setIsPlaying(false);
+  // Handle countdown interval and completion side effects cleanly in useEffect
+  useEffect(() => {
+    if (!isOpen) return;
+
+    if (secondsLeft <= 0) {
+      if (!isCompleted) {
+        setIsCompleted(true);
+        setIsPlaying(false);
+        try {
           confetti({
             particleCount: 50,
             spread: 60,
             origin: { y: 0.6 },
           });
-          onUnlocked();
-          return 0;
+        } catch {
+          // Ignore confetti errors if any
         }
-        return prev - 1;
-      });
+        onUnlocked();
+      }
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      setSecondsLeft((prev) => Math.max(0, prev - 1));
     }, 1000);
 
-    return () => clearInterval(timer);
-  }, [isOpen]);
+    return () => clearTimeout(timer);
+  }, [isOpen, secondsLeft, isCompleted, onUnlocked]);
 
   if (!isOpen) return null;
 

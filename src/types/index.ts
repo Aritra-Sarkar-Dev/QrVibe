@@ -70,6 +70,8 @@ export interface HistoryItem {
   timestamp: number;
   style: QRStyleConfig;
   isFavorite: boolean;
+  notes?: string;
+  downloadsCount?: number;
   previewDataUrl?: string;
 }
 

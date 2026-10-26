@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, Moon, Sun, Download, History } from 'lucide-react';
+import { Sparkles, Moon, Sun, Download, History, Menu, X, PlusCircle } from 'lucide-react';
 import { Language, Theme } from '../types/index.ts';
 import { Translations } from '../utils/i18n.ts';
 import { usePWAInstall } from '../hooks/usePWAInstall.ts';
+import { StandalonePageId } from './StandalonePage.tsx';
 
 interface NavbarProps {
   t: Translations;
@@ -13,6 +14,7 @@ interface NavbarProps {
   onOpenProModal: () => void;
   onOpenHistoryModal: () => void;
   historyCount: number;
+  onOpenPage?: (page: StandalonePageId | 'home') => void;
 }
 
 export const Navbar: React.FC<NavbarProps> = ({
@@ -24,19 +26,39 @@ export const Navbar: React.FC<NavbarProps> = ({
   onOpenProModal,
   onOpenHistoryModal,
   historyCount,
+  onOpenPage,
 }) => {
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [showIOSModal, setShowIOSModal] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navigateTo = (page: StandalonePageId | 'home', targetSection?: string) => {
+    setMobileMenuOpen(false);
+    if (onOpenPage) {
+      onOpenPage(page);
+    }
+    if (targetSection) {
+      setTimeout(() => {
+        document.getElementById(targetSection)?.scrollIntoView({ behavior: 'smooth' });
+      }, 50);
+    } else {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
   return (
     <>
-      <header className="sticky top-0 z-40 w-full backdrop-blur-xl border-b border-violet-900/30 bg-[#0b0813]/85 dark:bg-[#0b0813]/85 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-8">
-          {/* Zone 1: Brand wordmark */}
+      <header className="sticky top-0 z-40 w-full backdrop-blur-xl border-b border-violet-900/30 bg-[#0b0813]/90 dark:bg-[#0b0813]/90 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 sm:gap-8">
+          {/* Zone 1: Brand wordmark (Home click) */}
           <a
-            href="#"
-            className="flex items-center gap-2.5 whitespace-nowrap shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 rounded-lg py-1 px-1.5"
-            aria-label="QRVibe Home"
+            href="/"
+            onClick={(e) => {
+              e.preventDefault();
+              navigateTo('home');
+            }}
+            className="flex items-center gap-2.5 whitespace-nowrap shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 rounded-lg py-1 px-1.5 text-left"
+            aria-label="QR Vibe Home"
           >
             <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-fuchsia-600 via-violet-600 to-cyan-400 p-0.5 shadow-md shadow-fuchsia-500/20 group-hover:scale-105 transition-transform">
               <div className="w-full h-full bg-[#0b0813] rounded-[6px] flex items-center justify-center">
@@ -50,41 +72,71 @@ export const Navbar: React.FC<NavbarProps> = ({
             </span>
           </a>
 
-          {/* Zone 2: 4-5 single-line clean navigation links */}
-          <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-slate-300">
+          {/* Zone 2: Desktop Navigation links */}
+          <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate-300">
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('home');
+              }}
+              className="hover:text-white transition-colors whitespace-nowrap"
+            >
+              Home
+            </a>
             <a
               href="#generator"
-              className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('home', 'generator');
+              }}
+              className="hover:text-white transition-colors whitespace-nowrap"
             >
-              {t.nav.generator}
+              Create
             </a>
             <a
-              href="#features"
-              className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+              href="/about"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('about');
+              }}
+              className="hover:text-white transition-colors whitespace-nowrap"
             >
-              {t.nav.features}
+              About
             </a>
             <a
-              href="#bulk"
-              className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+              href="/privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('privacy');
+              }}
+              className="hover:text-white transition-colors whitespace-nowrap"
             >
-              {t.nav.bulk}
+              Privacy
             </a>
             <a
-              href="#pricing"
-              className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+              href="/terms"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('terms');
+              }}
+              className="hover:text-white transition-colors whitespace-nowrap"
             >
-              {t.nav.pricing}
+              Terms
             </a>
             <a
-              href="#faq"
-              className="hover:text-white transition-colors whitespace-nowrap shrink-0"
+              href="/contact"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('contact');
+              }}
+              className="hover:text-white transition-colors whitespace-nowrap"
             >
-              {t.nav.faq}
+              Contact
             </a>
           </nav>
 
-          {/* Zone 3: Actions + 1 primary CTA */}
+          {/* Zone 3: Actions + Theme Toggle + primary CTA */}
           <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* History Button */}
             <button
@@ -143,13 +195,102 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Primary Action Button: Go Pro */}
             <button
               onClick={onOpenProModal}
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 hover:brightness-110 active:scale-95 transition-all whitespace-nowrap shrink-0"
+              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 hover:brightness-110 active:scale-95 transition-all whitespace-nowrap shrink-0"
             >
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-fuchsia-200" />
               <span>{t.nav.goPro}</span>
             </button>
+
+            {/* Mobile Hamburger Menu Toggle */}
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="lg:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition"
+              aria-label="Toggle Navigation Menu"
+            >
+              {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="lg:hidden border-t border-white/10 bg-[#0f091c]/95 backdrop-blur-2xl px-4 py-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+            <a
+              href="/"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('home');
+              }}
+              className="block w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-white/10 transition"
+            >
+              Home
+            </a>
+            <a
+              href="#generator"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('home', 'generator');
+              }}
+              className="w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-white/10 transition flex items-center justify-between"
+            >
+              <span>Create (QR Generator)</span>
+              <PlusCircle className="w-4 h-4 text-fuchsia-400" />
+            </a>
+            <a
+              href="/about"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('about');
+              }}
+              className="block w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-white/10 transition"
+            >
+              About
+            </a>
+            <a
+              href="/privacy"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('privacy');
+              }}
+              className="block w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-white/10 transition"
+            >
+              Privacy
+            </a>
+            <a
+              href="/terms"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('terms');
+              }}
+              className="block w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-white/10 transition"
+            >
+              Terms
+            </a>
+            <a
+              href="/contact"
+              onClick={(e) => {
+                e.preventDefault();
+                navigateTo('contact');
+              }}
+              className="block w-full text-left py-2 px-3 rounded-xl text-sm font-medium text-slate-200 hover:bg-white/10 transition"
+            >
+              Contact
+            </a>
+            <div className="pt-2 border-t border-white/10">
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  onOpenProModal();
+                }}
+                className="w-full py-2.5 rounded-xl font-bold text-xs bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white flex items-center justify-center gap-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Go Pro Waitlist</span>
+              </button>
+            </div>
+          </div>
+        )}
       </header>
 
       {/* iOS Safari PWA Install Modal */}

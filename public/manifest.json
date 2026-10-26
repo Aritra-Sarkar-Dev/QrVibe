@@ -1,0 +1,17 @@
+{
+  "name": "QRVibe - Gen Z QR Code Generator",
+  "short_name": "QRVibe",
+  "description": "Free aesthetic QR code studio with custom gradients, presets, logos, bulk CSV, and high-res export.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b0813",
+  "theme_color": "#0b0813",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

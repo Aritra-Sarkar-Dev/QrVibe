@@ -8,6 +8,8 @@ import {
   RotateCw,
   X,
   Check,
+  Undo2,
+  Redo2,
 } from 'lucide-react';
 import {
   QRStyleConfig,
@@ -27,6 +29,10 @@ interface CustomizationStudioProps {
   onStyleChange: (newStyle: QRStyleConfig) => void;
   t: Translations;
   currentLang: string;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  canUndo?: boolean;
+  canRedo?: boolean;
 }
 
 export const CustomizationStudio: React.FC<CustomizationStudioProps> = ({
@@ -34,6 +40,10 @@ export const CustomizationStudio: React.FC<CustomizationStudioProps> = ({
   onStyleChange,
   t,
   currentLang,
+  onUndo,
+  onRedo,
+  canUndo = false,
+  canRedo = false,
 }) => {
   const logoInputRef = useRef<HTMLInputElement>(null);
 
@@ -102,18 +112,52 @@ export const CustomizationStudio: React.FC<CustomizationStudioProps> = ({
     <div className="space-y-6">
       {/* 1. Trendy Presets */}
       <div>
-        <div className="flex items-center justify-between mb-2.5">
+        <div className="flex items-center justify-between mb-2.5 flex-wrap gap-2">
           <label className="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
             <Sparkles className="w-3.5 h-3.5 text-fuchsia-400" />
             <span>{t.studio.presets}</span>
           </label>
-          <button
-            type="button"
-            onClick={handleResetToDefault}
-            className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 flex items-center gap-1"
-          >
-            <span>Reset to Clean B&W Normal</span>
-          </button>
+          <div className="flex items-center gap-2">
+            {onUndo && (
+              <button
+                type="button"
+                onClick={onUndo}
+                disabled={!canUndo}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
+                  canUndo
+                    ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 cursor-pointer'
+                    : 'border-white/5 bg-transparent text-slate-600 cursor-not-allowed opacity-50'
+                }`}
+                title="Undo last change (Ctrl+Z)"
+              >
+                <Undo2 className="w-3 h-3" />
+                <span>Undo</span>
+              </button>
+            )}
+            {onRedo && (
+              <button
+                type="button"
+                onClick={onRedo}
+                disabled={!canRedo}
+                className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-medium border transition ${
+                  canRedo
+                    ? 'border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 cursor-pointer'
+                    : 'border-white/5 bg-transparent text-slate-600 cursor-not-allowed opacity-50'
+                }`}
+                title="Redo change (Ctrl+Y or Ctrl+Shift+Z)"
+              >
+                <Redo2 className="w-3 h-3" />
+                <span>Redo</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={handleResetToDefault}
+              className="text-xs text-cyan-400 hover:text-cyan-300 font-semibold underline underline-offset-2 flex items-center gap-1 ml-1"
+            >
+              <span>Reset</span>
+            </button>
+          </div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {/* Default Clean B&W Preset Button */}

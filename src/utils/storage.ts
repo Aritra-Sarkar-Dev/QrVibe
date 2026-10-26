@@ -49,10 +49,15 @@ export function getStoredHistory(): HistoryItem[] {
 export function saveHistoryItem(item: Omit<HistoryItem, 'id' | 'timestamp'>): HistoryItem[] {
   try {
     const current = getStoredHistory();
+    // Check if an item with identical payload and type exists to preserve notes and downloads count
+    const existing = current.find((h) => h.payload === item.payload && h.type === item.type);
     const newItem: HistoryItem = {
       ...item,
-      id: `qr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      id: existing ? existing.id : `qr_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       timestamp: Date.now(),
+      notes: item.notes || (existing?.notes ?? ''),
+      downloadsCount: (item.downloadsCount !== undefined ? item.downloadsCount : (existing?.downloadsCount ?? 0)),
+      isFavorite: item.isFavorite !== undefined ? item.isFavorite : (existing?.isFavorite ?? false),
     };
 
     // Filter out duplicates with identical payload and type to keep it clean
@@ -63,6 +68,37 @@ export function saveHistoryItem(item: Omit<HistoryItem, 'id' | 'timestamp'>): Hi
     return updated;
   } catch (e) {
     console.error('Failed to save history item', e);
+    return getStoredHistory();
+  }
+}
+
+export function updateHistoryItemNotes(id: string, notes: string): HistoryItem[] {
+  try {
+    const current = getStoredHistory();
+    const updated = current.map((item) =>
+      item.id === id ? { ...item, notes } : item
+    );
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    console.error('Failed to update notes on history item', e);
+    return getStoredHistory();
+  }
+}
+
+export function incrementHistoryItemDownload(idOrPayload: string): HistoryItem[] {
+  try {
+    const current = getStoredHistory();
+    const updated = current.map((item) => {
+      if (item.id === idOrPayload || item.payload === idOrPayload) {
+        return { ...item, downloadsCount: (item.downloadsCount || 0) + 1 };
+      }
+      return item;
+    });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+    return updated;
+  } catch (e) {
+    console.error('Failed to increment download counter', e);
     return getStoredHistory();
   }
 }

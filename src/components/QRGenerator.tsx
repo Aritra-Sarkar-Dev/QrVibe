@@ -36,6 +36,7 @@ interface QRGeneratorProps {
   onHistoryUpdated: () => void;
   reopenItem?: HistoryItem | null;
   onPresetSelectedFromHero?: PresetName | null;
+  initialType?: QRType;
 }
 
 export const QRGenerator: React.FC<QRGeneratorProps> = ({
@@ -48,13 +49,85 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   onHistoryUpdated,
   reopenItem,
   onPresetSelectedFromHero,
+  initialType,
 }) => {
-  const [activeType, setActiveType] = useState<QRType>('link');
+  const [activeType, setActiveType] = useState<QRType>(initialType || 'link');
   const [payload, setPayload] = useState<string>('https://qrvibe.app');
   const [debouncedPayload, setDebouncedPayload] = useState<string>('https://qrvibe.app');
   const [title, setTitle] = useState<string>('Website Link');
   const [styleConfig, setStyleConfig] = useState<QRStyleConfig>(DEFAULT_STYLE_CONFIG);
+  const [undoStack, setUndoStack] = useState<QRStyleConfig[]>([]);
+  const [redoStack, setRedoStack] = useState<QRStyleConfig[]>([]);
   const [activeStudioTab, setActiveStudioTab] = useState<'content' | 'customize'>('content');
+
+  // Handle external initialType updates
+  useEffect(() => {
+    if (initialType) {
+      setActiveType(initialType);
+    }
+  }, [initialType]);
+
+  // Push style updates to undo stack
+  const handleStyleChange = (newStyle: QRStyleConfig) => {
+    setUndoStack((prev) => [...prev.slice(-25), styleConfig]);
+    setRedoStack([]);
+    setStyleConfig(newStyle);
+  };
+
+  const handleUndo = () => {
+    if (undoStack.length === 0) return;
+    const previous = undoStack[undoStack.length - 1];
+    setUndoStack((prev) => prev.slice(0, -1));
+    setRedoStack((prev) => [...prev, styleConfig]);
+    setStyleConfig(previous);
+  };
+
+  const handleRedo = () => {
+    if (redoStack.length === 0) return;
+    const next = redoStack[redoStack.length - 1];
+    setRedoStack((prev) => prev.slice(0, -1));
+    setUndoStack((prev) => [...prev, styleConfig]);
+    setStyleConfig(next);
+  };
+
+  // Keyboard shortcuts: Ctrl+Z (Undo), Ctrl+Y / Ctrl+Shift+Z (Redo), Escape (clear inputs)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        const target = e.target as HTMLElement;
+        const tag = target?.tagName?.toLowerCase();
+        if (tag === 'input' || tag === 'textarea') {
+          (target as HTMLInputElement).value = '';
+          target.dispatchEvent(new Event('input', { bubbles: true }));
+          target.blur();
+        } else {
+          setPayload('');
+          setTitle('');
+          setActiveStudioTab('content');
+        }
+        return;
+      }
+
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'z' || e.key === 'Z')) {
+        if (e.shiftKey) {
+          e.preventDefault();
+          handleRedo();
+        } else {
+          e.preventDefault();
+          handleUndo();
+        }
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || e.key === 'Y')) {
+        e.preventDefault();
+        handleRedo();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [undoStack, redoStack, styleConfig]);
 
   // Debounce payload updates by 250ms as required
   useEffect(() => {
@@ -80,11 +153,11 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
   useEffect(() => {
     if (onPresetSelectedFromHero && QR_PRESETS[onPresetSelectedFromHero]) {
       const preset = QR_PRESETS[onPresetSelectedFromHero];
-      setStyleConfig((prev) => ({
-        ...prev,
+      handleStyleChange({
+        ...styleConfig,
         ...preset.style,
         preset: onPresetSelectedFromHero,
-      }));
+      });
     }
   }, [onPresetSelectedFromHero]);
 
@@ -211,13 +284,13 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
                   }}
                   onOpenBulkModal={onOpenBulkModal}
                   onOverlayLogo={(logoUrl) => {
-                    setStyleConfig((prev) => ({
-                      ...prev,
+                    handleStyleChange({
+                      ...styleConfig,
                       logoUrl,
-                      errorCorrectionLevel: logoUrl ? 'H' : prev.errorCorrectionLevel,
+                      errorCorrectionLevel: logoUrl ? 'H' : styleConfig.errorCorrectionLevel,
                       logoSize: 0.22,
                       logoMargin: 4,
-                    }));
+                    });
                   }}
                 />
 
@@ -235,9 +308,13 @@ export const QRGenerator: React.FC<QRGeneratorProps> = ({
               /* Tab 2: Customization Studio */
               <CustomizationStudio
                 styleConfig={styleConfig}
-                onStyleChange={setStyleConfig}
+                onStyleChange={handleStyleChange}
                 t={t}
                 currentLang={currentLang}
+                onUndo={handleUndo}
+                onRedo={handleRedo}
+                canUndo={undoStack.length > 0}
+                canRedo={redoStack.length > 0}
               />
             )}
           </div>

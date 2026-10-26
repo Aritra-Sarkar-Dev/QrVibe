@@ -4,22 +4,171 @@
     <meta name="google-site-verification" content="DNcM9iYyly2LubyY8gimU-4VKD3PFBuUONQpY4utvzU" />
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>QRVibe - Gen Z All-in-One QR Code Generator & Studio</title>
-    <meta name="description" content="Free, aesthetic, all-in-one QR code generator with presets, custom dot styles, gradients, logos, bulk generation, and high-res export." />
-    <meta property="og:title" content="QRVibe - Gen Z All-in-One QR Code Generator & Studio" />
-    <meta property="og:description" content="Free, aesthetic, all-in-one QR code generator with presets, custom dot styles, gradients, logos, bulk generation, and high-res export." />
+    <title>QR Vibe – Free QR Code Generator Online</title>
+    <meta name="description" content="Create free QR codes for text, websites, contacts, email, phone numbers, and more. Customize colors, gradients, and logos with instant PNG, SVG, and PDF downloads." />
+    <link rel="canonical" href="https://qr-vibe.vercel.app/" />
+
+    <!-- Open Graph / Facebook / LinkedIn -->
     <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://qr-vibe.vercel.app/" />
+    <meta property="og:title" content="QR Vibe – Free QR Code Generator Online" />
+    <meta property="og:description" content="Create free QR codes for text, websites, contacts, email, phone numbers, and more. Customize colors, gradients, and logos with instant PNG, SVG, and PDF downloads." />
+    <meta property="og:image" content="https://qr-vibe.vercel.app/icon.svg" />
+    <meta property="og:site_name" content="QR Vibe" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter / X -->
     <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="QR Vibe – Free QR Code Generator Online" />
+    <meta name="twitter:description" content="Create free custom QR codes with gradient colors, custom dots, logos, and instant high-res PNG, SVG, and PDF export." />
+    <meta name="twitter:image" content="https://qr-vibe.vercel.app/icon.svg" />
+
+    <!-- PWA & Mobile Web App -->
     <meta name="theme-color" content="#0b0813" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="QRVibe" />
-    <link rel="apple-touch-icon" href="/icon-192.png" />
+    <meta name="apple-mobile-web-app-title" content="QR Vibe" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/icon.svg" />
     <link rel="icon" type="image/svg+xml" href="/icon.svg" />
+
+    <!-- Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <!-- JSON-LD Structured Data for Google Search & Rich Results -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "name": "QR Vibe",
+          "url": "https://qr-vibe.vercel.app/",
+          "description": "Free online QR code generator and customization studio.",
+          "potentialAction": {
+            "@type": "SearchAction",
+            "target": "https://qr-vibe.vercel.app/?q={search_term_string}",
+            "query-input": "required name=search_term_string"
+          }
+        },
+        {
+          "@type": "Organization",
+          "name": "QR Vibe",
+          "url": "https://qr-vibe.vercel.app/",
+          "logo": "https://qr-vibe.vercel.app/icon.svg",
+          "founder": {
+            "@type": "Person",
+            "name": "Aritra Sarkar",
+            "jobTitle": "Full-Stack Engineer & Designer",
+            "email": "aritrasarkar293@gmail.com",
+            "url": "https://github.com/aritra-sarkar-dev"
+          }
+        },
+        {
+          "@type": "WebApplication",
+          "name": "QR Vibe",
+          "url": "https://qr-vibe.vercel.app/",
+          "applicationCategory": "DesignApplication",
+          "operatingSystem": "All",
+          "browserRequirements": "Requires modern web browser with HTML5 Canvas and JavaScript enabled.",
+          "description": "Free, aesthetic, all-in-one QR code generator with presets, custom dot styles, gradients, logos, bulk CSV generation, and high-res PDF, PNG, and SVG export.",
+          "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+          }
+        },
+        {
+          "@type": "FAQPage",
+          "mainEntity": [
+            {
+              "@type": "Question",
+              "name": "What is a QR code?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "A QR (Quick Response) code is a two-dimensional barcode capable of storing hundreds of characters of data—such as website links, text notes, WiFi credentials, vCard contact cards, or payment links. Any modern smartphone camera can point at the code and scan it in milliseconds without requiring dedicated barcode apps."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is QR Vibe free to use?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, QR Vibe is 100% free forever for all standard static QR code generation. You can create unlimited QR codes, personalize styles, test scanner contrast, and download high-resolution PNG, SVG vector, or PDF files with no hidden fees or forced subscriptions."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I customize my QR code colors, patterns, and style?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Absolutely! QR Vibe provides unprecedented customization: choose from 8 signature aesthetic presets (Neon, Cyberpunk, Sunset, Pastel, and more), select custom dot patterns (dots, rounded, classy, squircle), customize corner squares and center dots, apply two-tone gradients, and set transparent backgrounds."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "How do I download my QR code?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Once you enter your details in the Studio generator, your QR renders instantly in the preview box on the right. Below the preview, choose your desired format: click 'Download PNG' for high-resolution bitmap, 'Vector SVG' for infinite printing scalability, or 'Export PDF' for print-ready documents."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I upload my own company or brand logo?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! In the Style & Colors tab, open the Center Logo panel to upload your brand emblem or select standard social icons (Instagram, TikTok, LinkedIn, YouTube). QR Vibe automatically upgrades scan reliability to Level H (High 30% error correction) so your code scans flawlessly with the logo overlay."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "What QR types are supported on QR Vibe?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "QR Vibe supports 15 different QR types: Web Links, Images (hosted via ImgBB), Plain Text, WiFi Networks, vCard Digital Business Cards, WhatsApp direct chat, Social Handles (Instagram, TikTok, X, YouTube, LinkedIn), Email mailto, SMS messaging, Phone Calls, GPS Geolocation, Calendar Events, Payment links (UPI, PayPal, cards), App Store links, and Bulk CSV batch generation."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Is my data secure and private?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes, QR Vibe adheres to a strict local-first privacy architecture. All QR encoding and image compression are computed directly inside your browser client. Your private passwords, phone numbers, and notes are never stored or logged on any external server."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do I need to sign up or create an account?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No sign-up is required. You can start generating, styling, and downloading QR codes instantly the moment you visit QR Vibe. No credit cards, no passwords, and no marketing emails."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Can I generate QR codes in bulk via CSV?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "Yes! QR Vibe features a built-in Bulk QR generator. Simply upload a CSV file or paste multiple lines of text or URLs, click 'Download All as ZIP', and our background processor will generate and zip all individual high-resolution QR files automatically."
+              }
+            },
+            {
+              "@type": "Question",
+              "name": "Do the QR codes generated on QR Vibe expire?",
+              "acceptedAnswer": {
+                "@type": "Answer",
+                "text": "No! Static QR codes generated on QR Vibe encode your payload directly into the pattern matrix and do not rely on an intermediary redirect server. Because of this, they will work forever with unlimited scans and will never expire."
+              }
+            }
+          ]
+        }
+      ]
+    }
+    </script>
   </head>
   <body class="bg-[#0b0813] text-slate-100 antialiased selection:bg-fuchsia-500 selection:text-white min-h-screen">
     <div id="root"></div>

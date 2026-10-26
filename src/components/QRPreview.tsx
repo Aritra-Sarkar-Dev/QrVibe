@@ -17,7 +17,7 @@ import {
 import { QRStyleConfig, QRType } from '../types/index.ts';
 import { Translations } from '../utils/i18n.ts';
 import { AdSlot } from './AdSlot.tsx';
-import { saveHistoryItem } from '../utils/storage.ts';
+import { saveHistoryItem, incrementHistoryItemDownload } from '../utils/storage.ts';
 
 interface QRPreviewProps {
   payload: string;
@@ -46,9 +46,11 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   const qrCodeInstanceRef = useRef<QRCodeStyling | null>(null);
 
   const [copied, setCopied] = useState<boolean>(false);
+  const [copiedRaw, setCopiedRaw] = useState<boolean>(false);
   const [shared, setShared] = useState<boolean>(false);
   const [includeWatermark, setIncludeWatermark] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
+  const [isRendering, setIsRendering] = useState<boolean>(false);
 
   // Trigger celebratory confetti
   const triggerConfetti = () => {
@@ -120,6 +122,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   // Initialize and update the QR code instance
   useEffect(() => {
     if (!payload.trim()) return;
+    setIsRendering(true);
 
     const options = buildQROptions(320); // Render preview at responsive 320px
 
@@ -132,6 +135,9 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     } else {
       qrCodeInstanceRef.current.update(options);
     }
+
+    const timer = setTimeout(() => setIsRendering(false), 150);
+    return () => clearTimeout(timer);
   }, [payload, styleConfig, isHdUnlocked]);
 
   // Auto-save generated QR to history
@@ -145,6 +151,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
       isFavorite: false,
       previewDataUrl: previewData,
     });
+    incrementHistoryItemDownload(payload);
     onHistoryUpdated();
   };
 
@@ -177,7 +184,8 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     try {
       const exportSize = isHdUnlocked ? 2048 : 1024;
       const downloadQR = new QRCodeStyling(buildQROptions(exportSize));
-      const blob = await downloadQR.getRawData('png');
+      const raw = await downloadQR.getRawData('png');
+      const blob = (raw as unknown as Blob) || null;
 
       if (blob) {
         const reader = new FileReader();
@@ -226,12 +234,56 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     }
   };
 
+  // Keyboard Shortcuts Handler: Enter to trigger, Ctrl+D for PNG, Ctrl+S for SVG
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Don't trigger if user is actively typing in an input/textarea
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea') {
+        if (e.key === 'Enter') {
+          // Allow Enter to celebrate / generate
+          triggerConfetti();
+        }
+        return;
+      }
+
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'D')) {
+        e.preventDefault();
+        handleDownload('png');
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
+        e.preventDefault();
+        handleDownload('svg');
+      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+        e.preventDefault();
+        handleDownloadPdf();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        triggerConfetti();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [payload, styleConfig, isHdUnlocked]);
+
+  // Copy raw payload URL/text
+  const handleCopyRawPayload = async () => {
+    if (!payload.trim()) return;
+    try {
+      await navigator.clipboard.writeText(payload);
+      setCopiedRaw(true);
+      setTimeout(() => setCopiedRaw(false), 2000);
+    } catch {}
+  };
+
   // Copy Image to Clipboard
   const handleCopyImage = async () => {
     if (!payload.trim()) return;
     try {
       const exportQR = new QRCodeStyling(buildQROptions(1024));
-      const blob = await exportQR.getRawData('png');
+      const raw = await exportQR.getRawData('png');
+      const blob = (raw as unknown as Blob) || null;
+
       if (blob && navigator.clipboard && typeof ClipboardItem !== 'undefined') {
         await navigator.clipboard.write([
           new ClipboardItem({
@@ -261,7 +313,9 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     try {
       if (navigator.share) {
         const exportQR = new QRCodeStyling(buildQROptions(1024));
-        const blob = await exportQR.getRawData('png');
+        const raw = await exportQR.getRawData('png');
+        const blob = (raw as unknown as Blob) || null;
+
         if (blob) {
           const file = new File([blob], 'qrvibe.png', { type: 'image/png' });
           if (navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -433,6 +487,37 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
             {shared ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Share2 className="w-3.5 h-3.5 text-slate-300" />}
             <span>{shared ? t.preview.shared : t.preview.share}</span>
           </button>
+        </div>
+
+        {/* Quick Copy Raw Payload Link */}
+        {!isEmpty && (
+          <div className="flex items-center justify-between gap-2 p-2 rounded-xl bg-black/30 border border-white/5 text-[11px] text-slate-400">
+            <span className="truncate max-w-[200px] font-mono text-[10px] text-slate-300">
+              {payload}
+            </span>
+            <button
+              type="button"
+              onClick={handleCopyRawPayload}
+              className="text-cyan-400 hover:text-cyan-300 flex items-center gap-1 font-semibold shrink-0"
+              title="Copy raw text or URL"
+            >
+              {copiedRaw ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              <span>{copiedRaw ? 'Copied URL!' : 'Copy Raw'}</span>
+            </button>
+          </div>
+        )}
+
+        {/* Keyboard Shortcuts Hint Bar */}
+        <div className="text-[10px] text-center text-slate-400 py-1 font-mono flex items-center justify-center gap-2">
+          <span>Shortcuts:</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">Enter</kbd>
+          <span>preview</span>
+          <span>·</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">Ctrl+D</kbd>
+          <span>PNG</span>
+          <span>·</span>
+          <kbd className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-slate-300">Ctrl+S</kbd>
+          <span>SVG</span>
         </div>
 
         {/* "Watch an ad to unlock HD 2048px download" Flow */}
