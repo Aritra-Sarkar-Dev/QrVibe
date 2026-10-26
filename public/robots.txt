@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
-Sitemap: https://aritra-sarkar-dev.github.io/QrVibe/sitemap.xml
+
+Sitemap: https://qr-vibe.vercel.app/sitemap.xml
