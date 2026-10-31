@@ -1,17 +1,14 @@
 /**
  * Server-Side Image Upload Endpoint for ImgBB
  *
- * Compatible with Vercel Serverless Functions and Express.
- * Strictly enforces:
- * - Server-only retrieval of IMGBB_API_KEY (never exposed to client)
- * - Supported MIME type validation (JPEG, PNG, WebP, GIF)
- * - Payload size limit (Max 5MB)
- * - Client IP rate limiting
- * - Request timeout (15s)
- * - Error sanitization (no credentials, upstream URLs, or internals in responses)
+ * Requirements:
+ * - Read key ONLY on server side from process.env.IMGBB_API_KEY (no VITE_ prefix).
+ * - Trim whitespace and strip surrounding quotes.
+ * - If missing or empty, return "IMGBB_API_KEY is not set".
+ * - POST to https://api.imgbb.com/1/upload?key=KEY with form field "image" using FormData.
+ * - Do not set Content-Type header manually.
+ * - Return data.data.url on success. On failure return exact ImgBB error message and status code.
  */
-
-import type { IncomingMessage, ServerResponse } from 'http';
 
 interface RateLimitRecord {
   count: number;
@@ -33,9 +30,6 @@ setInterval(() => {
   }
 }, 60 * 1000).unref?.();
 
-/**
- * Validates image buffer magic bytes against supported image formats
- */
 export function validateImageMagicBytes(buffer: Buffer): { valid: boolean; mime?: string } {
   if (buffer.length < 4) return { valid: false };
 
@@ -49,12 +43,12 @@ export function validateImageMagicBytes(buffer: Buffer): { valid: boolean; mime?
     return { valid: true, mime: 'image/png' };
   }
 
-  // GIF: 47 49 46 38 (GIF87a or GIF89a)
+  // GIF: 47 49 46 38
   if (buffer[0] === 0x47 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x38) {
     return { valid: true, mime: 'image/gif' };
   }
 
-  // WebP: RIFF ... WEBP (52 49 46 46 .... 57 45 42 50)
+  // WebP: RIFF ... WEBP
   if (
     buffer.length >= 12 &&
     buffer[0] === 0x52 && buffer[1] === 0x49 && buffer[2] === 0x46 && buffer[3] === 0x46 &&
@@ -66,9 +60,6 @@ export function validateImageMagicBytes(buffer: Buffer): { valid: boolean; mime?
   return { valid: false };
 }
 
-/**
- * Sanitizes upstream error messages so no API keys, request queries, or internal details leak
- */
 export function sanitizeUpstreamError(rawMessage?: string): string {
   if (!rawMessage || typeof rawMessage !== 'string') {
     return 'Image upload processing failed. Please try again.';
@@ -76,7 +67,6 @@ export function sanitizeUpstreamError(rawMessage?: string): string {
 
   const lower = rawMessage.toLowerCase();
 
-  // If the upstream error mentions key, token, or auth, return generic message
   if (lower.includes('key') || lower.includes('auth') || lower.includes('token') || lower.includes('credential')) {
     return 'Image hosting authentication failed. Please verify server configuration.';
   }
@@ -93,7 +83,6 @@ export function sanitizeUpstreamError(rawMessage?: string): string {
     return 'Image file is too large. Please upload an image under 5MB.';
   }
 
-  // Strip any URL or key query params from the message
   const cleaned = rawMessage
     .replace(/https?:\/\/[^\s]+/gi, '[redacted-url]')
     .replace(/key=[a-zA-Z0-9_-]+/gi, 'key=[redacted]')
@@ -102,9 +91,6 @@ export function sanitizeUpstreamError(rawMessage?: string): string {
   return cleaned || 'Image upload failed. Please try again.';
 }
 
-/**
- * Check and record rate limit for IP
- */
 export function isRateLimited(ip: string): boolean {
   const now = Date.now();
   const record = rateLimitMap.get(ip);
@@ -123,18 +109,25 @@ export function isRateLimited(ip: string): boolean {
 }
 
 export default async function handler(req: any, res: any) {
-  // Enforce POST method
   if (req.method !== 'POST') {
     res.setHeader?.('Allow', 'POST');
     return res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
   }
 
-  // 1. Read Server-Side Secret exclusively
-  const apiKey = process.env.IMGBB_API_KEY?.trim();
-  if (!apiKey) {
+  // 1. Key Handling: read only from process.env.IMGBB_API_KEY, trim whitespace, strip surrounding quotes
+  const rawKey = process.env.IMGBB_API_KEY;
+  if (!rawKey || typeof rawKey !== 'string') {
     return res.status(503).json({
       success: false,
-      error: 'Image upload service is temporarily unavailable. Server administrator has not configured IMGBB_API_KEY in environment variables.',
+      error: 'IMGBB_API_KEY is not set',
+    });
+  }
+
+  const apiKey = rawKey.replace(/^["']|["']$/g, '').trim();
+  if (!apiKey || apiKey === 'PASTE_YOUR_IMGBB_KEY_HERE' || apiKey === 'PASTE_YOUR_SERVER_SIDE_IMGBB_KEY_HERE') {
+    return res.status(503).json({
+      success: false,
+      error: 'IMGBB_API_KEY is not set',
     });
   }
 
@@ -151,7 +144,7 @@ export default async function handler(req: any, res: any) {
     });
   }
 
-  // 3. Extract and Validate Image Data
+  // 3. Extract Image Data
   const body = req.body;
   if (!body || typeof body !== 'object' || !body.image || typeof body.image !== 'string') {
     return res.status(400).json({
@@ -163,13 +156,11 @@ export default async function handler(req: any, res: any) {
   let rawBase64 = body.image.trim();
   const name = typeof body.name === 'string' ? body.name.replace(/[^a-zA-Z0-9_-]/g, '_').slice(0, 50) : undefined;
 
-  // Extract base64 part if data URL prefix exists
   const matches = rawBase64.match(/^data:([a-zA-Z0-9]+\/[a-zA-Z0-9-.+]+);base64,(.+)$/);
   if (matches) {
     rawBase64 = matches[2];
   }
 
-  // 4. Validate Buffer Size
   let imageBuffer: Buffer;
   try {
     imageBuffer = Buffer.from(rawBase64, 'base64');
@@ -184,12 +175,11 @@ export default async function handler(req: any, res: any) {
   if (imageBuffer.length > MAX_IMAGE_SIZE_BYTES) {
     return res.status(413).json({
       success: false,
-      error: `Image exceeds maximum allowed size of 5MB (received ${(imageBuffer.length / (1024 * 1024)).toFixed(2)} MB).`,
+      error: `Image exceeds maximum allowed size of 5MB.`,
     });
   }
 
-  // 5. Validate Magic Bytes / Format
-  const { valid, mime } = validateImageMagicBytes(imageBuffer);
+  const { valid } = validateImageMagicBytes(imageBuffer);
   if (!valid) {
     return res.status(400).json({
       success: false,
@@ -197,13 +187,13 @@ export default async function handler(req: any, res: any) {
     });
   }
 
-  // 6. Upstream Forwarding to ImgBB
+  // 4. Upstream Forwarding to ImgBB
   const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+  const timeoutId = setTimeout(() => controller.abort(), 15000);
 
   try {
     const upstreamFormData = new FormData();
-    upstreamFormData.append('image', rawBase64);
+    upstreamFormData.append('image', rawBase64); // form field "image"
     if (name) {
       upstreamFormData.append('name', name);
     }
@@ -213,7 +203,7 @@ export default async function handler(req: any, res: any) {
       {
         method: 'POST',
         body: upstreamFormData,
-        signal: controller.signal,
+        // NO Content-Type header! FormData handles multipart boundary automatically
       }
     );
 
@@ -222,24 +212,19 @@ export default async function handler(req: any, res: any) {
     const upstreamData = (await upstreamResponse.json()) as any;
 
     if (upstreamResponse.ok && upstreamData?.success && upstreamData?.data?.url) {
-      // Return minimum required response data. NEVER leak the key or full upstream request
       return res.status(200).json({
         success: true,
         url: upstreamData.data.url,
-        display_url: upstreamData.data.display_url || upstreamData.data.url,
-        width: upstreamData.data.width,
-        height: upstreamData.data.height,
-        mime,
       });
     }
 
-    const rawError = upstreamData?.error?.message;
-    const safeError = sanitizeUpstreamError(rawError);
-    const statusCode = upstreamResponse.status >= 400 && upstreamResponse.status < 500 ? 400 : 502;
+    // Return exact ImgBB error message and status code
+    const exactError = upstreamData?.error?.message || upstreamResponse.statusText || 'Upload failed';
+    const status = upstreamResponse.status || 500;
 
-    return res.status(statusCode).json({
+    return res.status(status).json({
       success: false,
-      error: safeError,
+      error: exactError,
     });
   } catch (err: any) {
     clearTimeout(timeoutId);
@@ -253,7 +238,7 @@ export default async function handler(req: any, res: any) {
 
     return res.status(502).json({
       success: false,
-      error: 'Unable to reach the image hosting service. Please try again later.',
+      error: err.message || 'Unable to reach the image hosting service.',
     });
   }
 }

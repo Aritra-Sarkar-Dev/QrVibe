@@ -23,6 +23,7 @@ import { QR_PRESETS, DEFAULT_STYLE_CONFIG } from '../utils/presets.ts';
 import { BUILTIN_LOGOS } from '../utils/logos.ts';
 import { Translations } from '../utils/i18n.ts';
 import { checkQRContrast } from '../utils/contrast.ts';
+import { uploadLogoToImgBB } from '../utils/imgbb.ts';
 
 interface CustomizationStudioProps {
   styleConfig: QRStyleConfig;
@@ -79,19 +80,29 @@ export const CustomizationStudio: React.FC<CustomizationStudioProps> = ({
     });
   };
 
-  // Logo upload
-  const handleLogoUpload = (file: File) => {
+  // Logo upload with robust ImgBB integration and graceful fallback
+  const handleLogoUpload = async (file: File) => {
+    // 1. Instant local preview
     const reader = new FileReader();
     reader.onload = (e) => {
       const url = e.target?.result as string;
       onStyleChange({
         ...styleConfig,
         logoUrl: url,
-        // Auto-switch to High (H) error correction as required
         errorCorrectionLevel: 'H',
       });
     };
     reader.readAsDataURL(file);
+
+    // 2. Upload to ImgBB in background with graceful fallback
+    const hostedUrl = await uploadLogoToImgBB(file);
+    if (hostedUrl) {
+      onStyleChange({
+        ...styleConfig,
+        logoUrl: hostedUrl,
+        errorCorrectionLevel: 'H',
+      });
+    }
   };
 
   // Remove logo

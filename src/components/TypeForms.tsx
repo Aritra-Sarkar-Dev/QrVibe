@@ -77,17 +77,22 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
   const [directImageUrl, setDirectImageUrl] = useState<string>('https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe');
   const [directUrlError, setDirectUrlError] = useState<string | null>(null);
   const [serviceStatus, setServiceStatus] = useState<'checking' | 'available' | 'unavailable'>('checking');
+  const [keyInfo, setKeyInfo] = useState<{ keyPresent: boolean; keyLength: number; keyTail: string }>({
+    keyPresent: false,
+    keyLength: 0,
+    keyTail: '',
+  });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [isUploading, setIsUploading] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
-  const [uploadedUrl, setUploadedUrl] = useState<string | null>('https://i.ibb.co/m7yXKhd/test.png');
+  const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  // Purge legacy client-stored keys and check upload service health on mount
+  // Purge legacy client-stored keys and check upload service status on mount from /api/upload-status
   useEffect(() => {
     try {
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -97,9 +102,21 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
       // ignore
     }
 
-    checkUploadServiceStatus().then((res) => {
-      setServiceStatus(res.status);
-    });
+    fetch('/api/upload-status')
+      .then((r) => r.json())
+      .then((data) => {
+        setKeyInfo({
+          keyPresent: Boolean(data?.keyPresent),
+          keyLength: data?.keyLength || 0,
+          keyTail: data?.keyTail || '',
+        });
+        if (data.keyPresent) {
+          setServiceStatus('available');
+        } else {
+          setServiceStatus('unavailable');
+        }
+      })
+      .catch(() => setServiceStatus('unavailable'));
   }, []);
 
   // 2. Text State
@@ -178,7 +195,7 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
   const [appStoreType, setAppStoreType] = useState<'ios' | 'android'>('ios');
   const [appId, setAppId] = useState<string>('id123456789');
 
-  // Handle Secure Image Upload Process (Proxied through /api/upload)
+  // Handle Secure Image Upload Process (No placeholder fallback on failure)
   const handleProcessImage = async (file: File) => {
     setImageFile(file);
     const previewUrl = URL.createObjectURL(file);
@@ -187,13 +204,7 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
     setIsUploading(true);
     setUploadProgress(15);
 
-    // Provide instant local feedback so user never gets an empty or broken canvas
-    const immediateFallbackUrl = `https://i.ibb.co/preview/${Date.now()}.jpg`;
-    setUploadedUrl(immediateFallbackUrl);
-    onPayloadChange(immediateFallbackUrl, `Image: ${file.name}`);
-
     try {
-      // Upload securely through server-side /api/upload endpoint
       const res = await uploadToImgBB(
         file,
         (pct) => {
@@ -207,14 +218,16 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
         onPayloadChange(res.url, `Image: ${file.name}`);
         setUploadError(null);
       } else {
-        const errorDetail = res.error || 'Upload could not be completed.';
-        setUploadError(
-          `${errorDetail} (A scannable preview QR code was generated with placeholder data).`
-        );
+        const errorMsg = res.error || 'Image upload failed, QR not created';
+        setUploadedUrl(null);
+        onPayloadChange('', 'Image Upload Failed');
+        setUploadError(errorMsg);
       }
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Upload failed.';
-      setUploadError(`Notice: ${msg}. A preview QR code was generated.`);
+      const msg = err instanceof Error ? err.message : 'Unknown error';
+      setUploadedUrl(null);
+      onPayloadChange('', 'Image Upload Failed');
+      setUploadError(`Image upload failed, QR not created: ${msg}`);
     } finally {
       setIsUploading(false);
     }
@@ -553,7 +566,7 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
                     {serviceStatus === 'unavailable' && <AlertCircle className="w-3 h-3 text-amber-400" />}
                     <span>
                       {serviceStatus === 'available'
-                        ? 'Service Available'
+                        ? 'Upload service ready'
                         : serviceStatus === 'checking'
                         ? 'Checking Status...'
                         : 'Upload Service Temporarily Unavailable'}
@@ -561,8 +574,8 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
                   </span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  {serviceStatus === 'available'
-                    ? 'Upload an image to generate a shareable image QR code.'
+                  {keyInfo.keyPresent
+                    ? `Key loaded: ${keyInfo.keyLength} chars, ends with ${keyInfo.keyTail}`
                     : 'Direct cloud hosting requires IMGBB_API_KEY in server environment variables. You can also paste any hosted image link in Direct Image URL.'}
                 </p>
               </div>
@@ -585,22 +598,17 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
 
               {/* Upload Error / Notice / Retry */}
               {uploadError && (
-                <div className="p-3 rounded-xl bg-amber-950/30 border border-amber-500/40 text-amber-200 text-xs flex items-start justify-between gap-2">
+                <div className="p-3 rounded-xl bg-rose-950/45 border border-rose-500/40 text-rose-200 text-xs flex items-start justify-between gap-2">
                   <div className="flex items-start gap-2">
-                    <AlertCircle className="w-4 h-4 text-amber-400 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <span>{uploadError}</span>
-                      <p className="text-[11px] text-emerald-300 font-medium">
-                        ✓ Your QR code is alive and scannable with the current preview payload!
-                      </p>
-                    </div>
+                    <AlertCircle className="w-4 h-4 text-rose-400 shrink-0 mt-0.5" />
+                    <span>{uploadError}</span>
                   </div>
                   <div className="flex flex-col items-end gap-1 shrink-0">
                     {imageFile && (
                       <button
                         type="button"
                         onClick={() => handleProcessImage(imageFile)}
-                        className="inline-flex items-center gap-1 font-semibold text-amber-400 hover:text-amber-300 underline shrink-0"
+                        className="inline-flex items-center gap-1 font-semibold text-rose-300 hover:text-rose-200 underline shrink-0"
                       >
                         <RefreshCw className="w-3 h-3" />
                         <span>{t.forms.retry}</span>

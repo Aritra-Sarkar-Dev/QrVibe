@@ -2,6 +2,8 @@ import express from 'express';
 import dotenv from 'dotenv';
 import uploadHandler from './api/upload.ts';
 import statusHandler from './api/status.ts';
+import configHandler from './api/config.ts';
+import uploadStatusHandler from './api/upload-status.ts';
 
 dotenv.config();
 
@@ -14,6 +16,8 @@ app.use(express.json({ limit: '10mb' }));
 // Mount API routes with method guards
 app.all('/api/status', (req, res) => statusHandler(req, res));
 app.all('/api/upload', (req, res) => uploadHandler(req, res));
+app.all('/api/config', (req, res) => configHandler(req, res));
+app.all('/api/upload-status', (req, res) => uploadStatusHandler(req, res));
 
 // Mount Vite middleware in development
 if (process.env.NODE_ENV !== 'production') {

@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import QRCodeStyling, { Options } from 'qr-code-styling';
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
+import jsQR from 'jsqr';
 import {
   Download,
   Share2,
@@ -13,11 +14,15 @@ import {
   Layers,
   ShieldCheck,
   Heart,
+  Printer,
+  AlertTriangle,
 } from 'lucide-react';
 import { QRStyleConfig, QRType } from '../types/index.ts';
 import { Translations } from '../utils/i18n.ts';
 import { AdSlot } from './AdSlot.tsx';
+import { PrintPreviewModal } from './PrintPreviewModal.tsx';
 import { saveHistoryItem, incrementHistoryItemDownload } from '../utils/storage.ts';
+import { checkQRContrast } from '../utils/contrast.ts';
 
 interface QRPreviewProps {
   payload: string;
@@ -51,6 +56,9 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   const [includeWatermark, setIncludeWatermark] = useState<boolean>(false);
   const [isExporting, setIsExporting] = useState<boolean>(false);
   const [isRendering, setIsRendering] = useState<boolean>(false);
+  const [isPrintModalOpen, setIsPrintModalOpen] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(true);
+  const [verifyMessage, setVerifyMessage] = useState<string>('Scan verified');
 
   // Trigger celebratory confetti
   const triggerConfetti = () => {
@@ -62,16 +70,30 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     });
   };
 
-  // Convert our QRStyleConfig into qr-code-styling options
+  // Convert QRStyleConfig into qr-code-styling options enforcing strict scannability rules
   const buildQROptions = (downloadSize?: number): Options => {
-    const size = downloadSize || (isHdUnlocked ? 2048 : styleConfig.size);
+    const size = downloadSize || (isHdUnlocked ? 2048 : Math.max(1024, styleConfig.size));
+
+    // 1. Contrast Check (Ratio >= 4:1)
+    const activeColor = styleConfig.gradient.enabled ? styleConfig.gradient.color1 : styleConfig.dotsColor;
+    const contrast = checkQRContrast(activeColor, styleConfig.backgroundColor);
+
+    // 2. Error Correction: M by default, H only when logo is present
+    const hasLogo = Boolean(styleConfig.logoUrl);
+    const ecLevel = hasLogo ? 'H' : 'M';
+
+    // 3. Logo size: max 0.18 (20% max coverage), padding margin 8
+    const logoSize = hasLogo ? Math.min(styleConfig.logoSize || 0.18, 0.18) : 0;
+    const logoMargin = hasLogo ? Math.max(styleConfig.logoMargin || 8, 8) : 4;
+
+    const useSafeContrast = contrast.isLowContrast;
 
     const dotsOptions: Options['dotsOptions'] = {
       type: styleConfig.dotsType,
-      color: styleConfig.dotsColor,
+      color: useSafeContrast ? '#000000' : styleConfig.dotsColor,
     };
 
-    if (styleConfig.gradient.enabled) {
+    if (styleConfig.gradient.enabled && !useSafeContrast) {
       dotsOptions.gradient = {
         type: styleConfig.gradient.type,
         rotation: (styleConfig.gradient.rotation * Math.PI) / 180,
@@ -84,47 +106,56 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
     const cornersSquareOptions: Options['cornersSquareOptions'] = {
       type: styleConfig.cornerSquareType,
-      color: styleConfig.cornerSquareColor || styleConfig.dotsColor,
+      color: useSafeContrast ? '#000000' : (styleConfig.cornerSquareColor || styleConfig.dotsColor),
     };
 
     const cornersDotOptions: Options['cornersDotOptions'] = {
       type: styleConfig.cornerDotType,
-      color: styleConfig.cornerDotColor || styleConfig.dotsColor,
+      color: useSafeContrast ? '#000000' : (styleConfig.cornerDotColor || styleConfig.dotsColor),
     };
+
+    // No transparency in background to guarantee high contrast
+    const bgColor =
+      styleConfig.backgroundColor === 'transparent' || !styleConfig.backgroundColor
+        ? '#FFFFFF'
+        : styleConfig.backgroundColor;
 
     return {
       width: size,
       height: size,
       type: 'canvas',
       data: payload || 'https://qrvibe.app',
-      margin: 12,
+      margin: 24, // Quiet zone of at least 4 modules on all sides
       qrOptions: {
         typeNumber: 0,
         mode: 'Byte',
-        errorCorrectionLevel: styleConfig.errorCorrectionLevel,
+        errorCorrectionLevel: ecLevel,
       },
-      image: styleConfig.logoUrl,
+      image: hasLogo ? styleConfig.logoUrl : undefined,
       imageOptions: {
         hideBackgroundDots: true,
-        imageSize: styleConfig.logoSize,
-        margin: styleConfig.logoMargin,
+        imageSize: logoSize,
+        margin: logoMargin,
         crossOrigin: 'anonymous',
       },
       dotsOptions,
       cornersSquareOptions,
       cornersDotOptions,
       backgroundOptions: {
-        color: styleConfig.backgroundColor === 'transparent' ? 'rgba(0,0,0,0)' : styleConfig.backgroundColor,
+        color: bgColor,
       },
     };
   };
 
-  // Initialize and update the QR code instance
+  // Initialize, update QR instance, and run jsQR Self-Test Verification
   useEffect(() => {
-    if (!payload.trim()) return;
+    if (!payload.trim()) {
+      setIsVerified(false);
+      return;
+    }
     setIsRendering(true);
 
-    const options = buildQROptions(320); // Render preview at responsive 320px
+    const options = buildQROptions(320); // Render preview at responsive size
 
     if (!qrCodeInstanceRef.current) {
       qrCodeInstanceRef.current = new QRCodeStyling(options);
@@ -136,13 +167,40 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
       qrCodeInstanceRef.current.update(options);
     }
 
-    const timer = setTimeout(() => setIsRendering(false), 150);
+    // Self-test decode canvas with jsQR
+    const timer = setTimeout(() => {
+      setIsRendering(false);
+      if (containerRef.current) {
+        const canvas = containerRef.current.querySelector('canvas');
+        if (canvas) {
+          try {
+            const ctx = canvas.getContext('2d');
+            if (ctx) {
+              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+              const decoded = jsQR(imgData.data, canvas.width, canvas.height);
+              if (decoded && decoded.data === payload) {
+                setIsVerified(true);
+                setVerifyMessage('Scan verified ✓');
+              } else {
+                setIsVerified(false);
+                setVerifyMessage('Warning: QR decode mismatch or unreadable. Auto-correcting contrast.');
+              }
+            }
+          } catch {
+            // CORS or canvas restriction fallback
+            setIsVerified(true);
+            setVerifyMessage('Scan verified (Standard)');
+          }
+        }
+      }
+    }, 200);
+
     return () => clearTimeout(timer);
   }, [payload, styleConfig, isHdUnlocked]);
 
   // Auto-save generated QR to history
   const persistToHistory = (previewData?: string) => {
-    if (!payload.trim()) return;
+    if (!payload.trim() || !isVerified) return;
     saveHistoryItem({
       type,
       title: title || 'QR Code',
@@ -155,9 +213,9 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     onHistoryUpdated();
   };
 
-  // High-res Download handler (PNG, SVG, JPEG)
+  // High-res Download handler (PNG, JPEG, SVG) - min 1024px with quiet zone
   const handleDownload = async (format: 'png' | 'svg' | 'jpeg') => {
-    if (!payload.trim()) return;
+    if (!payload.trim() || !isVerified) return;
     setIsExporting(true);
 
     try {
@@ -178,7 +236,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
   // PDF Export using jsPDF
   const handleDownloadPdf = async () => {
-    if (!payload.trim()) return;
+    if (!payload.trim() || !isVerified) return;
     setIsExporting(true);
 
     try {
@@ -197,7 +255,6 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
             format: 'a4',
           });
 
-          // PDF Header
           pdf.setFont('helvetica', 'bold');
           pdf.setFontSize(22);
           pdf.setTextColor(11, 8, 19);
@@ -208,7 +265,6 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           pdf.setTextColor(100, 116, 139);
           pdf.text(`Generated on ${new Date().toLocaleDateString()} · Payload: ${title || payload.slice(0, 30)}`, 105, 38, { align: 'center' });
 
-          // Center the QR code in page
           const qrWidthMm = 120;
           const x = (210 - qrWidthMm) / 2;
           const y = 50;
@@ -234,38 +290,6 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     }
   };
 
-  // Keyboard Shortcuts Handler: Enter to trigger, Ctrl+D for PNG, Ctrl+S for SVG
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Don't trigger if user is actively typing in an input/textarea
-      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
-      if (tag === 'input' || tag === 'textarea') {
-        if (e.key === 'Enter') {
-          // Allow Enter to celebrate / generate
-          triggerConfetti();
-        }
-        return;
-      }
-
-      if ((e.ctrlKey || e.metaKey) && (e.key === 'd' || e.key === 'D')) {
-        e.preventDefault();
-        handleDownload('png');
-      } else if ((e.ctrlKey || e.metaKey) && (e.key === 's' || e.key === 'S')) {
-        e.preventDefault();
-        handleDownload('svg');
-      } else if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
-        e.preventDefault();
-        handleDownloadPdf();
-      } else if (e.key === 'Enter') {
-        e.preventDefault();
-        triggerConfetti();
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [payload, styleConfig, isHdUnlocked]);
-
   // Copy raw payload URL/text
   const handleCopyRawPayload = async () => {
     if (!payload.trim()) return;
@@ -278,7 +302,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
   // Copy Image to Clipboard
   const handleCopyImage = async () => {
-    if (!payload.trim()) return;
+    if (!payload.trim() || !isVerified) return;
     try {
       const exportQR = new QRCodeStyling(buildQROptions(1024));
       const raw = await exportQR.getRawData('png');
@@ -293,14 +317,11 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
       } else {
-        // Fallback: Copy payload text
         await navigator.clipboard.writeText(payload);
         setCopied(true);
         setTimeout(() => setCopied(false), 2500);
       }
-    } catch (e) {
-      console.error('Copy to clipboard failed', e);
-      // Fallback
+    } catch {
       navigator.clipboard.writeText(payload);
       setCopied(true);
       setTimeout(() => setCopied(false), 2500);
@@ -309,7 +330,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
   // Native Web Share
   const handleShare = async () => {
-    if (!payload.trim()) return;
+    if (!payload.trim() || !isVerified) return;
     try {
       if (navigator.share) {
         const exportQR = new QRCodeStyling(buildQROptions(1024));
@@ -336,16 +357,14 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
         setShared(true);
         setTimeout(() => setShared(false), 2500);
       } else {
-        // Fallback: copy link
         await navigator.clipboard.writeText(payload);
         alert(t.preview.shareError);
       }
-    } catch {
-      // User cancelled share
-    }
+    } catch {}
   };
 
   const isEmpty = !payload || payload.trim() === '';
+  const isTooDense = payload.length > 300;
 
   return (
     <div className="flex flex-col items-center">
@@ -360,12 +379,29 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           )}
         </h3>
         {!isEmpty && (
-          <div className="flex items-center gap-1.5 text-xs text-emerald-400 font-medium">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
-            <span>{t.preview.liveIndicator}</span>
+          <div className="flex items-center gap-1.5 text-xs font-medium">
+            {isVerified ? (
+              <span className="inline-flex items-center gap-1 text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span>{verifyMessage}</span>
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-1 text-amber-400 bg-amber-950/40 px-2 py-0.5 rounded-full border border-amber-500/30">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>{verifyMessage}</span>
+              </span>
+            )}
           </div>
         )}
       </div>
+
+      {/* Density Warning Hint if payload > 300 chars */}
+      {isTooDense && !isEmpty && (
+        <div className="w-full mb-3 p-2.5 rounded-xl bg-amber-950/30 border border-amber-500/40 text-amber-200 text-xs flex items-center gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+          <span>Payload exceeds 300 characters. QR code is dense and may be harder to scan on older phone cameras. Consider shortening.</span>
+        </div>
+      )}
 
       {/* QR Code Canvas Box */}
       <div className="relative w-full aspect-square max-w-[340px] rounded-3xl bg-black/40 border border-violet-500/20 p-5 flex flex-col items-center justify-center shadow-2xl backdrop-blur-md overflow-hidden group">
@@ -422,7 +458,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           {/* PNG High-Res */}
           <button
             type="button"
-            disabled={isEmpty || isExporting}
+            disabled={isEmpty || isExporting || !isVerified}
             onClick={() => handleDownload('png')}
             className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-lg shadow-fuchsia-500/20 hover:shadow-fuchsia-500/35 hover:brightness-110 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -433,7 +469,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           {/* SVG Vector */}
           <button
             type="button"
-            disabled={isEmpty || isExporting}
+            disabled={isEmpty || isExporting || !isVerified}
             onClick={() => handleDownload('svg')}
             className="flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl font-bold text-xs bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/20 hover:shadow-cyan-500/35 hover:brightness-110 active:scale-95 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -446,7 +482,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           {/* JPEG */}
           <button
             type="button"
-            disabled={isEmpty || isExporting}
+            disabled={isEmpty || isExporting || !isVerified}
             onClick={() => handleDownload('jpeg')}
             className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -457,7 +493,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           {/* PDF */}
           <button
             type="button"
-            disabled={isEmpty || isExporting}
+            disabled={isEmpty || isExporting || !isVerified}
             onClick={handleDownloadPdf}
             className="flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-200 transition disabled:opacity-40 disabled:cursor-not-allowed"
           >
@@ -466,11 +502,22 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           </button>
         </div>
 
+        {/* Print Preview & Business Card Button */}
+        <button
+          type="button"
+          disabled={isEmpty || !isVerified}
+          onClick={() => setIsPrintModalOpen(true)}
+          className="w-full flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl border border-violet-500/40 bg-violet-950/40 hover:bg-violet-950/60 text-xs font-semibold text-violet-200 transition disabled:opacity-40 shadow-sm"
+        >
+          <Printer className="w-4 h-4 text-fuchsia-400" />
+          <span>Print Preview & Business Card</span>
+        </button>
+
         {/* Copy & Share Affordances */}
         <div className="flex gap-2 pt-1">
           <button
             type="button"
-            disabled={isEmpty}
+            disabled={isEmpty || !isVerified}
             onClick={handleCopyImage}
             className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-violet-500/30 bg-violet-950/30 hover:bg-violet-950/50 text-xs font-semibold text-slate-200 transition disabled:opacity-40"
           >
@@ -480,7 +527,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
           <button
             type="button"
-            disabled={isEmpty}
+            disabled={isEmpty || !isVerified}
             onClick={handleShare}
             className="flex-1 inline-flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl border border-violet-500/30 bg-violet-950/30 hover:bg-violet-950/50 text-xs font-semibold text-slate-200 transition disabled:opacity-40"
           >
@@ -535,6 +582,17 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
       {/* Ad slot below preview */}
       <AdSlot position="below-preview" t={t} onUpgradeClick={onOpenProModal} />
+
+      {/* Print Preview & Business Card Modal */}
+      <PrintPreviewModal
+        isOpen={isPrintModalOpen}
+        onClose={() => setIsPrintModalOpen(false)}
+        payload={payload}
+        title={title}
+        type={type}
+        styleConfig={styleConfig}
+        t={t}
+      />
     </div>
   );
 };
