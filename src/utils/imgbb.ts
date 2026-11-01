@@ -5,6 +5,7 @@
  * - Server reads process.env.IMGBB_API_KEY fresh on every request (never sent to browser, no VITE_ prefix).
  * - Client compresses image to at most 1600px before uploading via /api/upload proxy.
  * - Diagnostic endpoint /api/upload-status returns keyLength and keyTail (last 4 chars).
+ * - Client validates response content-type and checks for non-JSON/HTML error responses.
  */
 
 export interface UploadProgressCallback {
@@ -155,7 +156,7 @@ export async function compressImage(fileOrBlob: File | Blob, maxDimension = 1600
 
 /**
  * Uploads an image via the server-side proxy /api/upload.
- * The server reads process.env.IMGBB_API_KEY fresh on every request.
+ * Validates content-type and checks for JSON vs HTML error responses.
  */
 export async function uploadToImgBB(
   fileOrBlob: File | Blob,
@@ -187,7 +188,25 @@ export async function uploadToImgBB(
 
     onProgress?.(90);
 
-    const data = await res.json();
+    const contentType = res.headers.get('content-type') || '';
+    const text = await res.text();
+
+    if (!contentType.includes('application/json')) {
+      return {
+        success: false,
+        error: `Server error (HTTP ${res.status}): ${text.slice(0, 100)}`,
+      };
+    }
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      return {
+        success: false,
+        error: `Invalid JSON response (HTTP ${res.status}): ${text.slice(0, 100)}`,
+      };
+    }
 
     if (res.ok && data.success && data.url) {
       onProgress?.(100);

@@ -1,6 +1,6 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import uploadHandler from './api/upload.ts';
+import uploadHandler from './api/upload.js';
 import statusHandler from './api/status.ts';
 import configHandler from './api/config.ts';
 import uploadStatusHandler from './api/upload-status.ts';
@@ -13,11 +13,16 @@ const PORT = Number(process.env.PORT) || 3000;
 // Parse JSON bodies with 10MB limit for base64 encoded images
 app.use(express.json({ limit: '10mb' }));
 
-// Mount API routes with method guards
+// Mount API routes BEFORE any static or catch-all routes
 app.all('/api/status', (req, res) => statusHandler(req, res));
 app.all('/api/upload', (req, res) => uploadHandler(req, res));
 app.all('/api/config', (req, res) => configHandler(req, res));
 app.all('/api/upload-status', (req, res) => uploadStatusHandler(req, res));
+
+// Guarantee JSON response for any unhandled /api routes (preventing HTML fallbacks)
+app.use('/api', (req, res) => {
+  res.status(404).json({ error: `API endpoint not found: ${req.method} ${req.path}` });
+});
 
 // Mount Vite middleware in development
 if (process.env.NODE_ENV !== 'production') {

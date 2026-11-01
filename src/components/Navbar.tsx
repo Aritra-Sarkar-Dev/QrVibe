@@ -49,7 +49,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       <header className="sticky top-0 z-40 w-full backdrop-blur-xl border-b border-violet-900/30 bg-[#0b0813]/90 dark:bg-[#0b0813]/90 transition-colors">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4 sm:gap-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between gap-4 sm:gap-8">
           {/* Zone 1: Brand wordmark (Home click) */}
           <a
             href="/"

@@ -120,80 +120,80 @@ export const TypeForms: React.FC<TypeFormsProps> = ({
   }, []);
 
   // 2. Text State
-  const [textContent, setTextContent] = useState<string>('Welcome to the future of QR codes ✨');
+  const [textContent, setTextContent] = useState<string>('');
 
   // 3. Link State
-  const [linkUrl, setLinkUrl] = useState<string>('https://qrvibe.app');
+  const [linkUrl, setLinkUrl] = useState<string>('');
   const [linkError, setLinkError] = useState<string | null>(null);
 
   // 4. WiFi State
   const [wifiData, setWifiData] = useState<WifiData>({
-    ssid: 'CyberCoffee_5G',
-    password: 'vibe_password_2026',
+    ssid: '',
+    password: '',
     security: 'WPA',
     isHidden: false,
   });
 
   // 5. Contact State
   const [vcardData, setVcardData] = useState<VCardData>({
-    firstName: 'Alex',
-    lastName: 'Rivera',
-    organization: 'Studio Vibe',
-    jobTitle: 'Creative Director',
-    phone: '+1 415 555 2671',
-    email: 'alex@studiovibe.design',
-    website: 'https://studiovibe.design',
-    city: 'San Francisco, CA',
+    firstName: '',
+    lastName: '',
+    organization: '',
+    jobTitle: '',
+    phone: '',
+    email: '',
+    website: '',
+    city: '',
   });
 
   // 6. WhatsApp State
-  const [waPhone, setWaPhone] = useState<string>('14155552671');
-  const [waMessage, setWaMessage] = useState<string>('Hey! Found your QR on QRVibe. Let\'s connect! 🚀');
+  const [waPhone, setWaPhone] = useState<string>('');
+  const [waMessage, setWaMessage] = useState<string>('');
 
   // 7. Social State
   const [socialPlatform, setSocialPlatform] = useState<SocialPlatform>('instagram');
-  const [socialUser, setSocialUser] = useState<string>('qrvibe.official');
+  const [socialUser, setSocialUser] = useState<string>('');
 
   // 8. Email State
-  const [emailTo, setEmailTo] = useState<string>('hello@qrvibe.app');
-  const [emailSub, setEmailSub] = useState<string>('Collaboration Inquiry');
-  const [emailBody, setEmailBody] = useState<string>('Hey there, I would love to partner up!');
+  const [emailTo, setEmailTo] = useState<string>('');
+  const [emailSub, setEmailSub] = useState<string>('');
+  const [emailBody, setEmailBody] = useState<string>('');
 
   // 9. SMS State
-  const [smsPhone, setSmsPhone] = useState<string>('+1 555 019 2834');
-  const [smsMsg, setSmsMsg] = useState<string>('Check out this QR: qrvibe.app');
+  const [smsPhone, setSmsPhone] = useState<string>('');
+  const [smsMsg, setSmsMsg] = useState<string>('');
 
   // 10. Phone State
-  const [phoneNum, setPhoneNum] = useState<string>('+1 800 555 0199');
+  const [phoneNum, setPhoneNum] = useState<string>('');
 
   // 11. Location State
-  const [locLat, setLocLat] = useState<string>('37.7749');
-  const [locLng, setLocLng] = useState<string>('-122.4194');
+  const [locLat, setLocLat] = useState<string>('');
+  const [locLng, setLocLng] = useState<string>('');
   const [geoLocating, setGeoLocating] = useState<boolean>(false);
 
   // 12. Calendar State
   const [calData, setCalData] = useState<CalendarData>({
-    title: 'Neon Music Festival 2026',
-    startDate: '2026-11-15T19:00',
-    endDate: '2026-11-15T23:30',
-    location: 'Cyber Arena, Downtown',
+    title: '',
+    startDate: '',
+    endDate: '',
+    location: '',
   });
 
   // 13. Payment State
   const [payData, setPayData] = useState<PaymentData>({
     type: 'upi',
-    upiId: 'merchant@okhdfcbank',
-    name: 'QRVibe Creator Hub',
-    amount: '199',
+    upiId: '',
+    name: '',
+    amount: '',
     currency: 'INR',
-    note: 'Digital Art Purchase',
-    paypalUsername: 'creatorvibe',
-    customUrl: 'https://bkash.me/pay/sample',
+    note: '',
+    paypalUsername: '',
+    customUrl: '',
   });
 
   // 14. App Link State
   const [appStoreType, setAppStoreType] = useState<'ios' | 'android'>('ios');
-  const [appId, setAppId] = useState<string>('id123456789');
+  const [appId, setAppId] = useState<string>('');
 
   // Handle Secure Image Upload Process (No placeholder fallback on failure)
   const handleProcessImage = async (file: File) => {

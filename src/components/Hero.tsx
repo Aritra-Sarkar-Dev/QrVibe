@@ -60,26 +60,6 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
               Built for creators, small businesses, and modern menus. 100% free, local-first in your browser, with zero sign-up and permanent unlimited scans.
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-10">
-              <a
-                href="#generator"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-sm bg-gradient-to-r from-fuchsia-600 via-violet-600 to-cyan-500 text-white shadow-xl shadow-fuchsia-600/30 hover:shadow-fuchsia-600/50 hover:brightness-110 active:scale-95 transition whitespace-nowrap"
-              >
-                <span>{t.hero.primaryCta}</span>
-                <ArrowDown className="w-4 h-4" />
-              </a>
-              <button
-                onClick={() => {
-                  const el = document.getElementById('generator');
-                  el?.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-semibold text-sm border border-violet-500/30 bg-white/5 hover:bg-white/10 text-slate-200 transition whitespace-nowrap"
-              >
-                <span>{t.hero.secondaryCta}</span>
-              </button>
-            </div>
-
             {/* Micro proof markers */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs font-medium text-slate-400">
               <div className="flex items-center gap-1.5">
