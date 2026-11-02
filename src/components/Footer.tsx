@@ -1,3 +1,8 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Translations } from '../utils/i18n.ts';
@@ -9,8 +14,8 @@ interface FooterProps {
 
 export const Footer: React.FC<FooterProps> = ({ t }) => {
   return (
-    <footer className="border-t border-white/10 bg-[#08050e] py-12 text-xs text-slate-400">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="border-t border-white/10 bg-[#08050e] py-12 pb-36 text-xs text-slate-400">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           {/* Brand & Rights */}
           <div>
@@ -27,62 +32,69 @@ export const Footer: React.FC<FooterProps> = ({ t }) => {
             <p className="text-[11px] text-slate-500 mt-1">{t.footer.imgNotice}</p>
           </div>
 
-          {/* Nav & Legal Links */}
-          <nav aria-label="Footer Navigation" className="flex flex-wrap items-center justify-center gap-4 sm:gap-6 text-slate-300">
-            <Link to="/" className="hover:text-white transition underline-offset-4 hover:underline">
+          {/* Nav & Legal Links (Min 44px touch height, proper spacing) */}
+          <nav aria-label="Footer Navigation" className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 text-slate-300">
+            <Link
+              to="/"
+              className="min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition flex items-center justify-center font-medium"
+            >
               Home
             </Link>
-            <span className="text-slate-600" aria-hidden="true">|</span>
-            <Link to="/blog" className="hover:text-white transition underline-offset-4 hover:underline">
+            <Link
+              to="/blog"
+              className="min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition flex items-center justify-center font-medium"
+            >
               Blog
             </Link>
-            <span className="text-slate-600" aria-hidden="true">|</span>
-            <Link to="/about" className="hover:text-white transition underline-offset-4 hover:underline">
+            <Link
+              to="/about"
+              className="min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition flex items-center justify-center font-medium"
+            >
               About
             </Link>
-            <span className="text-slate-600" aria-hidden="true">|</span>
-            <Link to="/privacy" className="hover:text-white transition underline-offset-4 hover:underline">
+            <Link
+              to="/privacy"
+              className="min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition flex items-center justify-center font-medium"
+            >
               Privacy
             </Link>
-            <span className="text-slate-600" aria-hidden="true">|</span>
-            <Link to="/terms" className="hover:text-white transition underline-offset-4 hover:underline">
+            <Link
+              to="/terms"
+              className="min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition flex items-center justify-center font-medium"
+            >
               Terms
             </Link>
-            <span className="text-slate-600" aria-hidden="true">|</span>
-            <Link to="/contact" className="hover:text-white transition underline-offset-4 hover:underline">
+            <Link
+              to="/contact"
+              className="min-h-[44px] px-3 py-2.5 rounded-xl hover:bg-white/5 hover:text-white transition flex items-center justify-center font-medium"
+            >
               Contact
             </Link>
           </nav>
         </div>
 
         {/* Feature Tools Internal Linking Bar */}
-        <div className="mt-8 pt-6 border-t border-white/5 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] text-slate-400">
-          <span className="text-slate-500 font-semibold uppercase tracking-wider">Free QR Types:</span>
-          <Link to="/qr/url" className="hover:text-cyan-300 transition">
+        <div className="pt-6 border-t border-white/5 flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-slate-400">
+          <span className="text-slate-500 font-semibold uppercase tracking-wider mr-2">Free QR Types:</span>
+          <Link to="/qr/url" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             URL QR Code
           </Link>
-          <span>·</span>
-          <Link to="/qr/wifi" className="hover:text-cyan-300 transition">
+          <Link to="/qr/wifi" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             WiFi QR Code
           </Link>
-          <span>·</span>
-          <Link to="/qr/whatsapp" className="hover:text-cyan-300 transition">
+          <Link to="/qr/whatsapp" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             WhatsApp QR
           </Link>
-          <span>·</span>
-          <Link to="/qr/vcard" className="hover:text-cyan-300 transition">
+          <Link to="/qr/vcard" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             vCard Contact QR
           </Link>
-          <span>·</span>
-          <Link to="/qr/payment" className="hover:text-cyan-300 transition">
+          <Link to="/qr/payment" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             Payment QR
           </Link>
-          <span>·</span>
-          <Link to="/qr/image" className="hover:text-cyan-300 transition">
+          <Link to="/qr/image" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             Image QR
           </Link>
-          <span>·</span>
-          <Link to="/qr/text" className="hover:text-cyan-300 transition">
+          <Link to="/qr/text" className="min-h-[36px] px-2.5 py-1.5 rounded-lg hover:bg-white/5 hover:text-cyan-300 transition flex items-center">
             Text QR
           </Link>
         </div>

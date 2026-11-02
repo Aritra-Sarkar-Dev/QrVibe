@@ -1,8 +1,14 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
-import { ArrowLeft, Calendar, Clock, Sparkles, CheckCircle2, ShieldCheck, Zap } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, Sparkles, CheckCircle2, ShieldCheck, Zap, ChevronRight } from 'lucide-react';
 import { BLOG_POSTS } from './BlogIndexPage.tsx';
+import { SITE_URL } from '../utils/config.ts';
 
 const ARTICLE_CONTENTS: Record<string, { title: string; subtitle: string; content: React.ReactNode }> = {
   'how-qr-codes-work': {
@@ -168,24 +174,72 @@ export const BlogPostPage: React.FC = () => {
 
   const post = ARTICLE_CONTENTS[slug || 'how-qr-codes-work'] || ARTICLE_CONTENTS['how-qr-codes-work'];
   const postMeta = BLOG_POSTS.find((p) => p.slug === slug) || BLOG_POSTS[0];
-  const canonicalUrl = `https://qr-vibe.vercel.app/blog/${slug || 'how-qr-codes-work'}`;
+  const canonicalUrl = `${SITE_URL}/blog/${slug || 'how-qr-codes-work'}`;
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, [slug]);
+
+  // Valid JSON-LD BlogPosting schema (no personal email, no fake ratings)
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@type': 'BlogPosting',
+    headline: post.title,
+    description: post.subtitle,
+    image: `${SITE_URL}/og-image.png`,
+    datePublished: '2026-10-24T09:00:00+00:00',
+    dateModified: '2026-11-01T12:00:00+00:00',
+    author: {
+      '@type': 'Organization',
+      name: 'QRVibe Editorial Team',
+      url: `${SITE_URL}/contact`,
+    },
+    publisher: {
+      '@type': 'Organization',
+      name: 'QRVibe',
+      url: SITE_URL,
+      logo: {
+        '@type': 'ImageObject',
+        url: `${SITE_URL}/icon.svg`,
+      },
+    },
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': canonicalUrl,
+    },
+  };
 
   return (
     <div className="min-h-screen bg-[#0b0813] text-slate-100 py-12 px-4 sm:px-6 lg:px-8">
       <Helmet>
         <title>{post.title} – QRVibe Blog</title>
         <meta name="description" content={post.subtitle} />
+        <meta name="robots" content="index,follow" />
         <meta property="og:title" content={`${post.title} – QRVibe Blog`} />
         <meta property="og:description" content={post.subtitle} />
         <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:type" content="article" />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:site_name" content="QRVibe" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={`${post.title} – QRVibe Blog`} />
+        <meta name="twitter:description" content={post.subtitle} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
         <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(jsonLdData)}</script>
       </Helmet>
+
       <div className="max-w-3xl mx-auto space-y-10">
         
+        {/* Visible Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-400">
+          <Link to="/" className="hover:text-white transition">Home</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+          <Link to="/blog" className="hover:text-white transition">Blog</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+          <span className="text-fuchsia-400 font-medium line-clamp-1">{post.title}</span>
+        </nav>
+
         {/* Back Link */}
         <div>
           <Link
@@ -204,11 +258,11 @@ export const BlogPostPage: React.FC = () => {
               {postMeta.category}
             </span>
             <span className="flex items-center gap-1 text-slate-400">
-              <Calendar className="w-3.5 h-3.5" />
+              <Calendar className="w-3.5 h-3.5" aria-hidden="true" />
               {postMeta.date}
             </span>
             <span className="flex items-center gap-1 text-slate-400">
-              <Clock className="w-3.5 h-3.5" />
+              <Clock className="w-3.5 h-3.5" aria-hidden="true" />
               {postMeta.readTime}
             </span>
           </div>
@@ -223,9 +277,9 @@ export const BlogPostPage: React.FC = () => {
         </div>
 
         {/* Article Body Content */}
-        <div className="bg-gradient-to-b from-[#140e2b]/80 to-[#0e0a1f]/90 border border-violet-500/20 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl prose prose-invert max-w-none text-slate-300 space-y-6 leading-relaxed">
+        <article className="bg-gradient-to-b from-[#140e2b]/80 to-[#0e0a1f]/90 border border-violet-500/20 rounded-3xl p-6 sm:p-10 shadow-2xl backdrop-blur-xl prose prose-invert max-w-none text-slate-300 space-y-6 leading-relaxed">
           {post.content}
-        </div>
+        </article>
 
         {/* Reserved Ad Slot in Blog Article */}
         <div className="w-full">
@@ -247,7 +301,7 @@ export const BlogPostPage: React.FC = () => {
               to="/"
               className="inline-flex items-center gap-2 py-3 px-6 rounded-xl font-bold text-xs bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow-lg shadow-fuchsia-500/25 hover:brightness-110 transition"
             >
-              <Sparkles className="w-4 h-4" />
+              <Sparkles className="w-4 h-4" aria-hidden="true" />
               <span>Launch QRVibe Studio</span>
             </Link>
           </div>

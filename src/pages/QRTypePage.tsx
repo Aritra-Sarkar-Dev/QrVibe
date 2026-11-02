@@ -1,5 +1,10 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import {
   Wifi,
@@ -14,10 +19,13 @@ import {
   CheckCircle2,
   ShieldCheck,
   Zap,
+  ChevronRight,
+  BookOpen,
 } from 'lucide-react';
 import { QRGenerator } from '../components/QRGenerator.tsx';
 import { Translations } from '../utils/i18n.ts';
 import { QRType } from '../types/index.ts';
+import { SITE_URL } from '../utils/config.ts';
 
 interface QRTypePageProps {
   t: Translations;
@@ -40,6 +48,8 @@ const QR_SEO_DATA: Record<
     intro: string;
     steps: string[];
     tips: string[];
+    relatedTypes: Array<{ slug: string; name: string }>;
+    relatedBlogs: Array<{ slug: string; title: string }>;
   }
 > = {
   wifi: {
@@ -61,6 +71,15 @@ const QR_SEO_DATA: Record<
       'Print your WiFi QR code on table tents or wall stickers near reception or seating areas.',
       'Test scanning with multiple devices (iOS and Android) before bulk printing.',
     ],
+    relatedTypes: [
+      { slug: 'url', name: 'Website URL QR Code' },
+      { slug: 'whatsapp', name: 'WhatsApp Chat QR' },
+      { slug: 'vcard', name: 'vCard Digital Business Card' },
+    ],
+    relatedBlogs: [
+      { slug: 'cafe-wifi-qr-code', title: 'How to Make a WiFi QR Code for a Cafe, Restaurant, or Office' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
+    ],
   },
   whatsapp: {
     type: 'whatsapp',
@@ -80,6 +99,15 @@ const QR_SEO_DATA: Record<
       'Include a friendly call-to-action frame around the code like "Scan to Chat with Us on WhatsApp".',
       'Ideal for product packaging, storefront windows, business cards, and Instagram highlights.',
       'Ensure your WhatsApp Business app is configured to respond promptly to incoming scanner inquiries.',
+    ],
+    relatedTypes: [
+      { slug: 'url', name: 'Website URL QR Code' },
+      { slug: 'wifi', name: 'WiFi QR Code' },
+      { slug: 'payment', name: 'Payment QR Code' },
+    ],
+    relatedBlogs: [
+      { slug: 'small-shop-payment-qr', title: 'Payment QR Codes for Small Shops, Creators & Freelancers' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
     ],
   },
   payment: {
@@ -101,6 +129,15 @@ const QR_SEO_DATA: Record<
       'Laminate your printed payment QR codes to withstand liquid spills and daily wear at retail counters.',
       'Ensure high contrast between payment QR dots and background for lightning-fast camera recognition.',
     ],
+    relatedTypes: [
+      { slug: 'url', name: 'Website URL QR Code' },
+      { slug: 'whatsapp', name: 'WhatsApp Chat QR' },
+      { slug: 'vcard', name: 'vCard Contact QR' },
+    ],
+    relatedBlogs: [
+      { slug: 'small-shop-payment-qr', title: 'Payment QR Codes for Small Shops, Creators & Freelancers' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
+    ],
   },
   vcard: {
     type: 'contact',
@@ -120,6 +157,15 @@ const QR_SEO_DATA: Record<
       'Keep your vCard information updated; static vCard QRs encode the info directly so ensure details are correct before printing thousands of cards.',
       'Add a clean corporate logo in the center of your vCard QR code for enhanced brand recall.',
       'Place your vCard QR code on the back of physical business cards for seamless digital synchronization.',
+    ],
+    relatedTypes: [
+      { slug: 'url', name: 'Website URL QR Code' },
+      { slug: 'wifi', name: 'WiFi QR Code' },
+      { slug: 'whatsapp', name: 'WhatsApp Chat QR' },
+    ],
+    relatedBlogs: [
+      { slug: 'how-qr-codes-work', title: 'How QR Codes Work: Technology, Matrix Patterns & Error Correction' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
     ],
   },
   image: {
@@ -141,6 +187,15 @@ const QR_SEO_DATA: Record<
       'Great for art exhibitions, photography galleries, real estate property flyers, and restaurant specials.',
       'Use the built-in direct image URL option if your photo is already hosted on Unsplash, Imgur, or your own server.',
     ],
+    relatedTypes: [
+      { slug: 'url', name: 'Website URL QR Code' },
+      { slug: 'whatsapp', name: 'WhatsApp Chat QR' },
+      { slug: 'payment', name: 'Payment QR Code' },
+    ],
+    relatedBlogs: [
+      { slug: 'restaurant-menu-qr-code', title: 'Restaurant Menu QR Code: Best Practices for Seamless Dining' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
+    ],
   },
   text: {
     type: 'text',
@@ -160,6 +215,15 @@ const QR_SEO_DATA: Record<
       'Keep text concise to prevent the QR matrix from becoming too dense for older smartphone cameras.',
       'Works 100% offline—no web server or internet connection required to read the decoded text.',
       'Ideal for product labeling, inventory tracking, and educational puzzles.',
+    ],
+    relatedTypes: [
+      { slug: 'url', name: 'Website URL QR Code' },
+      { slug: 'wifi', name: 'WiFi QR Code' },
+      { slug: 'vcard', name: 'vCard Contact QR' },
+    ],
+    relatedBlogs: [
+      { slug: 'how-qr-codes-work', title: 'How QR Codes Work: Technology, Matrix Patterns & Error Correction' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
     ],
   },
   url: {
@@ -181,6 +245,15 @@ const QR_SEO_DATA: Record<
       'Track scan performance by appending UTM analytics parameters to your destination URL.',
       'Ensure adequate contrast between your QR dots and background for lightning-fast autofocus recognition.',
     ],
+    relatedTypes: [
+      { slug: 'wifi', name: 'WiFi QR Code' },
+      { slug: 'whatsapp', name: 'WhatsApp Chat QR' },
+      { slug: 'vcard', name: 'vCard Contact QR' },
+    ],
+    relatedBlogs: [
+      { slug: 'restaurant-menu-qr-code', title: 'Restaurant Menu QR Code: Best Practices for Seamless Dining' },
+      { slug: 'qr-code-best-practices', title: 'QR Code Best Practices: Contrast, Quiet Zones, Sizing & Scannability' },
+    ],
   },
 };
 
@@ -198,26 +271,72 @@ export const QRTypePage: React.FC<QRTypePageProps> = ({
 
   const seoData = QR_SEO_DATA[typeSlug || 'url'] || QR_SEO_DATA['url'];
   const IconComponent = seoData.icon;
-  const canonicalUrl = `https://qr-vibe.vercel.app/qr/${typeSlug || 'url'}`;
+  const canonicalUrl = `${SITE_URL}/qr/${typeSlug || 'url'}`;
+
+  // Structured Data JSON-LD (BreadcrumbList & HowTo)
+  const jsonLdData = {
+    '@context': 'https://schema.org',
+    '@graph': [
+      {
+        '@type': 'BreadcrumbList',
+        itemListElement: [
+          { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE_URL}/` },
+          { '@type': 'ListItem', position: 2, name: 'QR Types', item: `${SITE_URL}/#guide` },
+          { '@type': 'ListItem', position: 3, name: seoData.h1, item: canonicalUrl },
+        ],
+      },
+      {
+        '@type': 'HowTo',
+        name: `How to create a ${seoData.h1}`,
+        description: seoData.description,
+        step: seoData.steps.map((stepText, idx) => ({
+          '@type': 'HowToStep',
+          position: idx + 1,
+          name: `Step ${idx + 1}`,
+          text: stepText,
+        })),
+      },
+    ],
+  };
 
   return (
     <div className="min-h-screen bg-[#0b0813] text-slate-100 py-10 px-4 sm:px-6 lg:px-8">
       <Helmet>
         <title>{seoData.title}</title>
         <meta name="description" content={seoData.description} />
+        <meta name="robots" content="index,follow" />
         <meta property="og:title" content={seoData.title} />
         <meta property="og:description" content={seoData.description} />
         <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content={`${SITE_URL}/og-image.png`} />
+        <meta property="og:site_name" content="QRVibe" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={seoData.title} />
+        <meta name="twitter:description" content={seoData.description} />
+        <meta name="twitter:image" content={`${SITE_URL}/og-image.png`} />
         <link rel="canonical" href={canonicalUrl} />
+        <script type="application/ld+json">{JSON.stringify(jsonLdData)}</script>
       </Helmet>
+
       <div className="max-w-7xl mx-auto space-y-10">
         
+        {/* Visible Breadcrumb */}
+        <nav aria-label="Breadcrumb" className="flex items-center gap-2 text-xs text-slate-400">
+          <Link to="/" className="hover:text-white transition">Home</Link>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+          <span className="text-slate-400">QR Types</span>
+          <ChevronRight className="w-3.5 h-3.5 text-slate-600" />
+          <span className="text-fuchsia-400 font-medium">{seoData.h1}</span>
+        </nav>
+
         {/* Back Button */}
         <div>
           <button
             type="button"
             onClick={() => navigate('/')}
             className="inline-flex items-center gap-2 py-2 px-3.5 rounded-xl border border-violet-500/30 bg-violet-950/30 hover:bg-violet-950/50 text-xs font-semibold text-slate-200 transition"
+            aria-label="Back to All Generators"
           >
             <ArrowLeft className="w-4 h-4 text-fuchsia-400" />
             <span>Back to All Generators</span>
@@ -227,7 +346,7 @@ export const QRTypePage: React.FC<QRTypePageProps> = ({
         {/* Hero Section */}
         <div className="text-center max-w-3xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-violet-950/60 border border-violet-500/30 text-xs font-semibold text-fuchsia-300">
-            <IconComponent className="w-4 h-4 text-fuchsia-400" />
+            <IconComponent className="w-4 h-4 text-fuchsia-400" aria-hidden="true" />
             <span className="capitalize">{seoData.type} QR Studio</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-black font-['Outfit'] tracking-tight text-white">
@@ -256,7 +375,7 @@ export const QRTypePage: React.FC<QRTypePageProps> = ({
         <div className="max-w-4xl mx-auto bg-violet-950/20 border border-violet-500/30 rounded-3xl p-8 sm:p-10 space-y-8 backdrop-blur-md">
           <div className="space-y-4">
             <h2 className="text-2xl font-bold font-['Outfit'] text-white flex items-center gap-2.5">
-              <Sparkles className="w-6 h-6 text-fuchsia-400" />
+              <Sparkles className="w-6 h-6 text-fuchsia-400" aria-hidden="true" />
               <span>What is a {seoData.h1}?</span>
             </h2>
             <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
@@ -268,7 +387,7 @@ export const QRTypePage: React.FC<QRTypePageProps> = ({
             {/* Step-by-Step Guide */}
             <div className="space-y-4">
               <h3 className="text-lg font-bold font-['Outfit'] text-fuchsia-300 flex items-center gap-2">
-                <Zap className="w-5 h-5 text-cyan-400" />
+                <Zap className="w-5 h-5 text-cyan-400" aria-hidden="true" />
                 <span>How to Create Step-by-Step</span>
               </h3>
               <ul className="space-y-3">
@@ -286,17 +405,53 @@ export const QRTypePage: React.FC<QRTypePageProps> = ({
             {/* Pro Tips */}
             <div className="space-y-4">
               <h3 className="text-lg font-bold font-['Outfit'] text-cyan-300 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <ShieldCheck className="w-5 h-5 text-emerald-400" aria-hidden="true" />
                 <span>Pro Scannability Tips</span>
               </h3>
               <ul className="space-y-3">
                 {seoData.tips.map((tip, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-xs sm:text-sm text-slate-300">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" aria-hidden="true" />
                     <span className="leading-relaxed">{tip}</span>
                   </li>
                 ))}
               </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* Related QR Types & Related Blog Guides (Internal Linking) */}
+        <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6 pt-4">
+          <div className="p-6 rounded-2xl bg-violet-950/35 border border-violet-500/30 space-y-3">
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-['Outfit']">Related QR Generators</h4>
+            <div className="flex flex-wrap gap-2">
+              {seoData.relatedTypes.map((rt) => (
+                <Link
+                  key={rt.slug}
+                  to={`/qr/${rt.slug}`}
+                  className="px-3 py-1.5 rounded-xl bg-white/5 border border-white/10 hover:border-fuchsia-500 text-xs font-semibold text-fuchsia-300 transition"
+                >
+                  {rt.name}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          <div className="p-6 rounded-2xl bg-violet-950/35 border border-violet-500/30 space-y-3">
+            <h4 className="text-sm font-bold text-white uppercase tracking-wider font-['Outfit'] flex items-center gap-2">
+              <BookOpen className="w-4 h-4 text-cyan-400" aria-hidden="true" />
+              <span>Related Guides</span>
+            </h4>
+            <div className="space-y-2">
+              {seoData.relatedBlogs.map((rb) => (
+                <Link
+                  key={rb.slug}
+                  to={`/blog/${rb.slug}`}
+                  className="block text-xs font-semibold text-cyan-300 hover:underline line-clamp-1"
+                >
+                  {rb.title}
+                </Link>
+              ))}
             </div>
           </div>
         </div>

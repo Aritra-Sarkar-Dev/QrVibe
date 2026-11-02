@@ -4,7 +4,7 @@
  */
 
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet-async';
 import { Language, Theme, HistoryItem, PresetName, QRType } from './types/index.ts';
 import { translations } from './utils/i18n.ts';
@@ -61,6 +61,7 @@ function MainLayout() {
 
   const t = translations[lang];
   const navigate = useNavigate();
+  const location = useLocation();
 
   const refreshHistoryCount = () => {
     setHistoryCount(getStoredHistory().length);
@@ -70,6 +71,10 @@ function MainLayout() {
     refreshHistoryCount();
     initGoogleAnalytics();
   }, []);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [location.pathname]);
 
   // Update theme class on HTML element
   useEffect(() => {

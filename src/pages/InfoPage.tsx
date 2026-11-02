@@ -57,6 +57,10 @@ const INFO_CONTENTS: Record<string, { title: string; icon: any; content: React.R
         <p>
           Your recent QR generation history is stored exclusively in your browser&apos;s local storage (`localStorage`) so you can access your past codes across sessions. You can clear your history anytime.
         </p>
+        <h2 className="text-xl font-bold text-white font-['Outfit'] mt-6 mb-3">4. Advertising & Google AdSense Cookies</h2>
+        <p>
+          Third-party vendors, including Google, use cookies to serve ads based on your prior visits to our website or other websites. Google&apos;s use of advertising cookies enables it and its partners to serve ads to you based on your visit to our sites and/or other sites on the Internet. You may learn more about how Google uses data by visiting <a href="https://policies.google.com/technologies/ads" target="_blank" rel="noopener noreferrer" className="text-fuchsia-400 underline font-medium">https://policies.google.com/technologies/ads</a>.
+        </p>
       </>
     ),
   },
