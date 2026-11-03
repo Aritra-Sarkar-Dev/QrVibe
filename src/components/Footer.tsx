@@ -19,7 +19,24 @@ export const Footer: React.FC<FooterProps> = ({ t }) => {
         <div className="flex flex-col md:flex-row items-center justify-between gap-6 text-center md:text-left">
           {/* Brand & Rights */}
           <div>
-            <div className="flex items-center justify-center md:justify-start gap-2 mb-2">
+            <div className="flex items-center justify-center md:justify-start gap-2.5 mb-2">
+              <div className="w-7 h-7 rounded-lg bg-gradient-to-tr from-fuchsia-600 via-violet-600 to-cyan-400 p-0.5 shadow-sm overflow-hidden relative border border-violet-500/40">
+                <img
+                  src="/icon-512.png"
+                  alt="QRVibe Logo"
+                  className="w-full h-full object-cover rounded-[5px]"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const fallback = e.currentTarget.nextElementSibling;
+                    if (fallback) fallback.classList.remove('hidden');
+                  }}
+                />
+                <div className="w-full h-full bg-[#0b0813] rounded-[5px] items-center justify-center hidden absolute inset-0">
+                  <span className="font-black text-[10px] text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">
+                    QR
+                  </span>
+                </div>
+              </div>
               <span className="font-extrabold text-base text-white font-['Outfit']">
                 QR<span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">Vibe</span>
               </span>

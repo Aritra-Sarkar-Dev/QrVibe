@@ -62,9 +62,19 @@ export const Navbar: React.FC<NavbarProps> = ({
             className="flex items-center gap-2.5 whitespace-nowrap shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-fuchsia-500 rounded-lg py-1 px-1.5 text-left"
             aria-label="QR Vibe Home"
           >
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-fuchsia-600 via-violet-600 to-cyan-400 p-0.5 shadow-md shadow-fuchsia-500/20 group-hover:scale-105 transition-transform">
-              <div className="w-full h-full bg-[#0b0813] rounded-[6px] flex items-center justify-center">
-                <span className="font-black text-sm text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-fuchsia-600 via-violet-600 to-cyan-400 p-0.5 shadow-md shadow-fuchsia-500/20 group-hover:scale-105 transition-transform overflow-hidden relative border border-violet-500/40">
+              <img
+                src="/icon-512.png"
+                alt="QRVibe Logo"
+                className="w-full h-full object-cover rounded-[6px]"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  const fallback = e.currentTarget.nextElementSibling;
+                  if (fallback) fallback.classList.remove('hidden');
+                }}
+              />
+              <div className="w-full h-full bg-[#0b0813] rounded-[6px] items-center justify-center hidden absolute inset-0 border border-violet-500/30">
+                <span className="font-black text-xs text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">
                   QR
                 </span>
               </div>

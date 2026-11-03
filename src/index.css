@@ -57,3 +57,13 @@
     scroll-behavior: auto !important;
   }
 }
+
+@keyframes scan {
+  0% { top: 5%; opacity: 0.9; }
+  50% { opacity: 1; }
+  100% { top: 95%; opacity: 0.9; }
+}
+.animate-scan {
+  animation: scan 1.8s cubic-bezier(0.4, 0, 0.6, 1) infinite alternate;
+}
+

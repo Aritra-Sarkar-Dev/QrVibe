@@ -434,9 +434,14 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
               className="w-full h-full flex items-center justify-center [&>canvas]:max-w-full [&>canvas]:h-auto [&>canvas]:rounded-2xl transition-transform duration-300 group-hover:scale-[1.02]"
             />
 
+            {/* Smooth Scanning Line Overlay on Hover */}
+            <div className="absolute inset-x-4 inset-y-4 pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-300 overflow-hidden rounded-2xl z-10">
+              <div className="absolute inset-x-0 h-1 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_20px_#22d3ee] animate-scan" />
+            </div>
+
             {/* Optional Watermark Badge */}
             {includeWatermark && (
-              <div className="absolute bottom-2 text-[10px] font-medium text-slate-400 bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10">
+              <div className="absolute bottom-2 text-[10px] font-medium text-slate-400 bg-black/70 backdrop-blur-md px-2.5 py-0.5 rounded-full border border-white/10 z-20">
                 Made with QRVibe
               </div>
             )}
