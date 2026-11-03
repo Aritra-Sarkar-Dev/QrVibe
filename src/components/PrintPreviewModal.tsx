@@ -1,4 +1,5 @@
 import React, { useState, useRef } from 'react';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 import QRCodeStyling, { Options } from 'qr-code-styling';
 import {
   Printer,
@@ -115,6 +116,8 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
     generateQrImage();
   }, [isOpen, payload, styleConfig]);
 
+  const overlayRef = usePassiveOverlay<HTMLDivElement>();
+
   if (!isOpen) return null;
 
   const handleTriggerPrint = () => {
@@ -123,6 +126,7 @@ export const PrintPreviewModal: React.FC<PrintPreviewModalProps> = ({
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-3 sm:p-6 overflow-y-auto"

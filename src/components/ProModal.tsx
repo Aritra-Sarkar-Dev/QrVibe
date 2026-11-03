@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { X, Sparkles, Check, Mail, Zap, ShieldCheck } from 'lucide-react';
 import { Translations } from '../utils/i18n.ts';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 
 interface ProModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ export const ProModal: React.FC<ProModalProps> = ({ isOpen, onClose, t }) => {
   const [email, setEmail] = useState<string>('');
   const [submitted, setSubmitted] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+
+  const overlayRef = usePassiveOverlay<HTMLDivElement>();
 
   if (!isOpen) return null;
 
@@ -27,6 +30,7 @@ export const ProModal: React.FC<ProModalProps> = ({ isOpen, onClose, t }) => {
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-md p-4"

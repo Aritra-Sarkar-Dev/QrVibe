@@ -36,7 +36,10 @@ import { DEFAULT_STYLE_CONFIG } from './utils/presets.ts';
 import { QRTypePage } from './pages/QRTypePage.tsx';
 import { BlogIndexPage } from './pages/BlogIndexPage.tsx';
 import { BlogPostPage } from './pages/BlogPostPage.tsx';
-import { InfoPage } from './pages/InfoPage.tsx';
+import { AboutPage } from './pages/AboutPage.tsx';
+import { PrivacyPage } from './pages/PrivacyPage.tsx';
+import { TermsPage } from './pages/TermsPage.tsx';
+import { ContactPage } from './pages/ContactPage.tsx';
 
 function MainLayout() {
   const [lang, setLang] = useState<Language>(getStoredLanguage());
@@ -241,10 +244,10 @@ function MainLayout() {
           />
           <Route path="/blog" element={<BlogIndexPage />} />
           <Route path="/blog/:slug" element={<BlogPostPage />} />
-          <Route path="/about" element={<InfoPage />} />
-          <Route path="/contact" element={<InfoPage />} />
-          <Route path="/privacy" element={<InfoPage />} />
-          <Route path="/terms" element={<InfoPage />} />
+          <Route path="/about" element={<AboutPage />} />
+          <Route path="/contact" element={<ContactPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/terms" element={<TermsPage />} />
           <Route
             path="*"
             element={

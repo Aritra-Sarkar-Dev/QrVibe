@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import JSZip from 'jszip';
 import QRCodeStyling from 'qr-code-styling';
 import confetti from 'canvas-confetti';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 import {
   X,
   Upload,
@@ -77,6 +78,8 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
       cleanupObjectUrls();
     };
   }, []);
+
+  const overlayRef = usePassiveOverlay<HTMLDivElement>();
 
   if (!isOpen) return null;
 
@@ -330,6 +333,7 @@ export const BulkQRModal: React.FC<BulkQRModalProps> = ({
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-4"

@@ -200,7 +200,7 @@ export const BlogPostPage: React.FC = () => {
       url: SITE_URL,
       logo: {
         '@type': 'ImageObject',
-        url: `${SITE_URL}/icon.svg`,
+        url: `${SITE_URL}/icon-512.png`,
       },
     },
     mainEntityOfPage: {

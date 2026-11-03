@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { HistoryItem } from '../types/index.ts';
 import { Translations } from '../utils/i18n.ts';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 import {
   getStoredHistory,
   deleteHistoryItem,
@@ -42,6 +43,8 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [noteDraft, setNoteDraft] = useState<string>('');
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const overlayRef = usePassiveOverlay<HTMLDivElement>();
 
   if (!isOpen) return null;
 
@@ -97,6 +100,7 @@ export const HistoryDrawer: React.FC<HistoryDrawerProps> = ({
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm"

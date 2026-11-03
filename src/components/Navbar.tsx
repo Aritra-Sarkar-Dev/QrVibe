@@ -4,6 +4,7 @@ import { Language, Theme } from '../types/index.ts';
 import { Translations } from '../utils/i18n.ts';
 import { usePWAInstall } from '../hooks/usePWAInstall.ts';
 import { StandalonePageId } from './StandalonePage.tsx';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 
 interface NavbarProps {
   t: Translations;
@@ -31,6 +32,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   const { isInstallable, isInstalled, isIOS, install } = usePWAInstall();
   const [showIOSModal, setShowIOSModal] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const iosModalOverlayRef = usePassiveOverlay<HTMLDivElement>();
 
   const navigateTo = (page: StandalonePageId | 'home', targetSection?: string) => {
     setMobileMenuOpen(false);
@@ -296,6 +298,7 @@ export const Navbar: React.FC<NavbarProps> = ({
       {/* iOS Safari PWA Install Modal */}
       {showIOSModal && (
         <div
+          ref={iosModalOverlayRef}
           role="dialog"
           aria-modal="true"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4"

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import confetti from 'canvas-confetti';
 import { X, Play, CheckCircle2, Sparkles, Volume2 } from 'lucide-react';
 import { Translations } from '../utils/i18n.ts';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 
 interface WatchAdModalProps {
   isOpen: boolean;
@@ -58,10 +59,13 @@ export const WatchAdModal: React.FC<WatchAdModalProps> = ({
     return () => clearTimeout(timer);
   }, [isOpen, secondsLeft, isCompleted, onUnlocked]);
 
+  const overlayRef = usePassiveOverlay<HTMLDivElement>();
+
   if (!isOpen) return null;
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4"

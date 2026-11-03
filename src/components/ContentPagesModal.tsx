@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { usePassiveOverlay } from '../hooks/usePassiveOverlay.ts';
 import {
   X,
   ShieldCheck,
@@ -36,6 +37,8 @@ export const ContentPagesModal: React.FC<ContentPagesModalProps> = ({
   const [message, setMessage] = useState('');
   const [isSent, setIsSent] = useState(false);
 
+  const overlayRef = usePassiveOverlay<HTMLDivElement>();
+
   if (!activePage) return null;
 
   const handleContactSubmit = (e: React.FormEvent) => {
@@ -51,6 +54,7 @@ export const ContentPagesModal: React.FC<ContentPagesModalProps> = ({
 
   return (
     <div
+      ref={overlayRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby="page-title"
