@@ -67,6 +67,8 @@ export const Navbar: React.FC<NavbarProps> = ({
                 src="/icon-512.png"
                 alt="QRVibe Logo"
                 className="w-full h-full object-cover rounded-[6px]"
+                fetchPriority="high"
+                loading="eager"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   const fallback = e.currentTarget.nextElementSibling;
@@ -92,7 +94,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 navigateTo('home');
               }}
-              className="hover:text-white transition-colors whitespace-nowrap"
+              className="hover:text-white transition-colors whitespace-nowrap min-h-[44px] flex items-center"
             >
               Home
             </a>
@@ -102,7 +104,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 navigateTo('home', 'generator');
               }}
-              className="hover:text-white transition-colors whitespace-nowrap"
+              className="hover:text-white transition-colors whitespace-nowrap min-h-[44px] flex items-center"
             >
               Create
             </a>
@@ -112,7 +114,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 navigateTo('about');
               }}
-              className="hover:text-white transition-colors whitespace-nowrap"
+              className="hover:text-white transition-colors whitespace-nowrap min-h-[44px] flex items-center"
             >
               About
             </a>
@@ -122,7 +124,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 navigateTo('privacy');
               }}
-              className="hover:text-white transition-colors whitespace-nowrap"
+              className="hover:text-white transition-colors whitespace-nowrap min-h-[44px] flex items-center"
             >
               Privacy
             </a>
@@ -132,7 +134,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 navigateTo('terms');
               }}
-              className="hover:text-white transition-colors whitespace-nowrap"
+              className="hover:text-white transition-colors whitespace-nowrap min-h-[44px] flex items-center"
             >
               Terms
             </a>
@@ -142,7 +144,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 e.preventDefault();
                 navigateTo('contact');
               }}
-              className="hover:text-white transition-colors whitespace-nowrap"
+              className="hover:text-white transition-colors whitespace-nowrap min-h-[44px] flex items-center"
             >
               Contact
             </a>
@@ -153,13 +155,13 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* History Button */}
             <button
               onClick={onOpenHistoryModal}
-              className="relative p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition"
+              className="relative min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
               aria-label={t.nav.history}
               title={t.nav.history}
             >
               <History className="w-4 h-4" />
               {historyCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-fuchsia-600 text-[10px] font-bold text-white flex items-center justify-center">
+                <span className="absolute top-1 right-1 w-4 h-4 rounded-full bg-fuchsia-600 text-[10px] font-bold text-white flex items-center justify-center">
                   {historyCount}
                 </span>
               )}
@@ -168,7 +170,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Language Toggle: EN <-> বাংলা */}
             <button
               onClick={() => onLanguageChange(currentLang === 'en' ? 'bn' : 'en')}
-              className="px-2.5 py-1.5 rounded-lg text-xs font-semibold border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 transition whitespace-nowrap"
+              className="min-h-[44px] px-3 py-2 rounded-xl text-xs font-semibold border border-white/10 bg-white/5 hover:bg-white/10 text-slate-200 transition whitespace-nowrap flex items-center justify-center cursor-pointer"
               aria-label="Toggle language between English and Bengali"
             >
               {currentLang === 'en' ? 'বাং' : 'EN'}
@@ -177,18 +179,18 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Theme Toggle: Dark <-> Light */}
             <button
               onClick={onToggleTheme}
-              className="p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
               aria-label="Toggle color theme"
               title="Toggle theme"
             >
               {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
             </button>
 
-            {/* PWA Install Button (if installable and not already installed) */}
+            {/* PWA Install Button */}
             {!isInstalled && isInstallable && (
               <button
                 onClick={install}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30 transition whitespace-nowrap"
+                className="hidden sm:inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-medium bg-cyan-500/20 border border-cyan-500/40 text-cyan-300 hover:bg-cyan-500/30 transition whitespace-nowrap cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
                 <span>{t.nav.installApp}</span>
@@ -198,7 +200,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {!isInstalled && isIOS && (
               <button
                 onClick={() => setShowIOSModal(true)}
-                className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition whitespace-nowrap"
+                className="hidden sm:inline-flex items-center gap-1.5 min-h-[44px] px-3.5 py-2 rounded-xl text-xs font-medium border border-white/10 bg-white/5 text-slate-300 hover:bg-white/10 transition whitespace-nowrap cursor-pointer"
               >
                 <span>{t.nav.installOnIos}</span>
               </button>
@@ -207,7 +209,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Primary Action Button: Go Pro */}
             <button
               onClick={onOpenProModal}
-              className="hidden sm:inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs sm:text-sm font-semibold rounded-lg bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 hover:brightness-110 active:scale-95 transition-all whitespace-nowrap shrink-0"
+              className="hidden sm:inline-flex items-center gap-1.5 min-h-[44px] px-4 py-2 text-xs sm:text-sm font-semibold rounded-xl bg-gradient-to-r from-fuchsia-600 via-purple-600 to-indigo-600 text-white shadow-lg shadow-fuchsia-500/25 hover:shadow-fuchsia-500/40 hover:brightness-110 active:scale-95 transition-all whitespace-nowrap shrink-0 cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-fuchsia-200" />
               <span>{t.nav.goPro}</span>
@@ -216,7 +218,7 @@ export const Navbar: React.FC<NavbarProps> = ({
             {/* Mobile Hamburger Menu Toggle */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="lg:hidden p-2 rounded-lg text-slate-300 hover:text-white hover:bg-white/10 transition"
+              className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center p-2.5 rounded-xl text-slate-300 hover:text-white hover:bg-white/10 transition cursor-pointer"
               aria-label="Toggle Navigation Menu"
             >
               {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

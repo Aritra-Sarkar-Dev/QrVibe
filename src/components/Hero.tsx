@@ -1,5 +1,10 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useState } from 'react';
-import { ArrowDown, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Sparkles, CheckCircle2, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
 import { Translations } from '../utils/i18n.ts';
 import { PresetName } from '../types/index.ts';
 
@@ -11,7 +16,7 @@ interface HeroProps {
 export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
   const [activeDemoPreset, setActiveDemoPreset] = useState<PresetName>('neon');
 
-  // Rotate demo presets gently every 4 seconds
+  // Rotate demo presets gently every 4.5 seconds
   useEffect(() => {
     const presets: PresetName[] = ['neon', 'cyberpunk', 'sunset', 'mint', 'pastel', 'glass'];
     let idx = 0;
@@ -21,6 +26,10 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
     }, 4500);
     return () => clearInterval(interval);
   }, []);
+
+  const scrollToGenerator = () => {
+    document.getElementById('generator')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   return (
     <section className="relative overflow-hidden pt-10 pb-16 lg:pt-16 lg:pb-24">
@@ -60,6 +69,24 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
               Built for creators, small businesses, and modern menus. 100% free, local-first in your browser, with zero sign-up and permanent unlimited scans.
             </p>
 
+            {/* High-Impact Conversion CTA Button */}
+            <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4 mb-8">
+              <button
+                type="button"
+                onClick={scrollToGenerator}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-fuchsia-600 via-purple-600 to-cyan-500 text-white font-extrabold text-sm shadow-xl shadow-fuchsia-500/30 hover:shadow-fuchsia-500/50 hover:brightness-110 active:scale-95 transition cursor-pointer group"
+              >
+                <Zap className="w-4 h-4 text-cyan-300 animate-bounce" />
+                <span>Create Free QR Code Now</span>
+                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+              </button>
+
+              <div className="flex items-center gap-2 text-xs text-slate-400 bg-white/5 border border-white/10 px-4 py-3 rounded-2xl">
+                <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                <span>No sign-up required · 100% Free Forever</span>
+              </div>
+            </div>
+
             {/* Micro proof markers */}
             <div className="flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs font-medium text-slate-400">
               <div className="flex items-center gap-1.5">
@@ -96,9 +123,8 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
                   </span>
                 </div>
 
-                {/* Stylized QR Mock Canvas with animated drawing effect */}
+                {/* Stylized QR Mock Canvas */}
                 <div className="aspect-square w-full rounded-2xl bg-[#0b0813] border border-violet-500/20 p-5 flex items-center justify-center relative overflow-hidden shadow-inner">
-                  {/* Decorative corner finders based on active preset */}
                   <div className="relative w-full h-full flex flex-col justify-between p-2">
                     <div className="flex justify-between">
                       <div className="w-16 h-16 rounded-xl border-4 border-fuchsia-500 p-2 flex items-center justify-center">
@@ -109,7 +135,6 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
                       </div>
                     </div>
 
-                    {/* Center Gen Z Vibe badge */}
                     <div className="self-center flex flex-col items-center justify-center gap-1.5 p-3 rounded-xl bg-violet-950/80 border border-violet-500/40 shadow-lg">
                       <span className="text-xs font-black text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 via-pink-400 to-cyan-400 font-['Outfit']">
                         SCAN ME
@@ -142,12 +167,13 @@ export const Hero: React.FC<HeroProps> = ({ t, onSelectPreset }) => {
                     {(['neon', 'cyberpunk', 'sunset', 'mint', 'pastel', 'glass'] as PresetName[]).map(
                       (p) => (
                         <button
+                          type="button"
                           key={p}
                           onClick={() => {
                             setActiveDemoPreset(p);
                             onSelectPreset(p);
                           }}
-                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition ${
+                          className={`px-2.5 py-1 rounded-lg text-xs font-medium transition cursor-pointer ${
                             activeDemoPreset === p
                               ? 'bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white shadow'
                               : 'bg-white/5 hover:bg-white/10 text-slate-300'
