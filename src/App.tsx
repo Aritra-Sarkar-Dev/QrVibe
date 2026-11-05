@@ -20,33 +20,35 @@ import { Navbar } from './components/Navbar.tsx';
 import { Footer } from './components/Footer.tsx';
 import { DEFAULT_STYLE_CONFIG } from './utils/presets.ts';
 import { LocalBusinessSchema } from './components/LocalBusinessSchema.tsx';
+import { QRGenerator } from './components/QRGenerator.tsx';
 
-// Lazy loaded heavy components & pages for optimal mobile performance (90+ score)
-const QRGenerator = lazy(() => import('./components/QRGenerator.tsx').then(m => ({ default: m.QRGenerator })));
-const Hero = lazy(() => import('./components/Hero.tsx').then(m => ({ default: m.Hero })));
-const WhyQRVibe = lazy(() => import('./components/WhyQRVibe.tsx').then(m => ({ default: m.WhyQRVibe })));
-const BentoFeatures = lazy(() => import('./components/BentoFeatures.tsx').then(m => ({ default: m.BentoFeatures })));
-const HowItWorks = lazy(() => import('./components/HowItWorks.tsx').then(m => ({ default: m.HowItWorks })));
-const HelpfulGuide = lazy(() => import('./components/HelpfulGuide.tsx').then(m => ({ default: m.HelpfulGuide })));
-const Pricing = lazy(() => import('./components/Pricing.tsx').then(m => ({ default: m.Pricing })));
-const FAQ = lazy(() => import('./components/FAQ.tsx').then(m => ({ default: m.FAQ })));
+// Lazy loaded below-the-fold components and pages for lightning-fast mobile performance (85+ score)
+const Hero = lazy(() => import('./components/Hero').then(m => ({ default: m.Hero })));
+const WhyQRVibe = lazy(() => import('./components/WhyQRVibe').then(m => ({ default: m.WhyQRVibe })));
+const BentoFeatures = lazy(() => import('./components/BentoFeatures').then(m => ({ default: m.BentoFeatures })));
+const HowItWorks = lazy(() => import('./components/HowItWorks').then(m => ({ default: m.HowItWorks })));
+const HelpfulGuide = lazy(() => import('./components/HelpfulGuide').then(m => ({ default: m.HelpfulGuide })));
+const Pricing = lazy(() => import('./components/Pricing').then(m => ({ default: m.Pricing })));
+const FAQ = lazy(() => import('./components/FAQ').then(m => ({ default: m.FAQ })));
 
-const BulkQRModal = lazy(() => import('./components/BulkQRModal.tsx').then(m => ({ default: m.BulkQRModal })));
-const HistoryDrawer = lazy(() => import('./components/HistoryDrawer.tsx').then(m => ({ default: m.HistoryDrawer })));
-const ProModal = lazy(() => import('./components/ProModal.tsx').then(m => ({ default: m.ProModal })));
-const WatchAdModal = lazy(() => import('./components/WatchAdModal.tsx').then(m => ({ default: m.WatchAdModal })));
+const BulkQRModal = lazy(() => import('./components/BulkQRModal').then(m => ({ default: m.BulkQRModal })));
+const HistoryDrawer = lazy(() => import('./components/HistoryDrawer').then(m => ({ default: m.HistoryDrawer })));
+const ProModal = lazy(() => import('./components/ProModal').then(m => ({ default: m.ProModal })));
+const WatchAdModal = lazy(() => import('./components/WatchAdModal').then(m => ({ default: m.WatchAdModal })));
 
-const QRTypePage = lazy(() => import('./pages/QRTypePage.tsx').then(m => ({ default: m.QRTypePage })));
-const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage.tsx').then(m => ({ default: m.BlogIndexPage })));
-const BlogPostPage = lazy(() => import('./pages/BlogPostPage.tsx').then(m => ({ default: m.BlogPostPage })));
-const AboutPage = lazy(() => import('./pages/AboutPage.tsx').then(m => ({ default: m.AboutPage })));
-const PrivacyPage = lazy(() => import('./pages/PrivacyPage.tsx').then(m => ({ default: m.PrivacyPage })));
-const TermsPage = lazy(() => import('./pages/TermsPage.tsx').then(m => ({ default: m.TermsPage })));
-const ContactPage = lazy(() => import('./pages/ContactPage.tsx').then(m => ({ default: m.ContactPage })));
+const QRTypePage = lazy(() => import('./pages/QRTypePage').then(m => ({ default: m.QRTypePage })));
+const BlogIndexPage = lazy(() => import('./pages/BlogIndexPage').then(m => ({ default: m.BlogIndexPage })));
+const BlogPostPage = lazy(() => import('./pages/BlogPostPage').then(m => ({ default: m.BlogPostPage })));
+const AboutPage = lazy(() => import('./pages/AboutPage').then(m => ({ default: m.AboutPage })));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage').then(m => ({ default: m.PrivacyPage })));
+const TermsPage = lazy(() => import('./pages/TermsPage').then(m => ({ default: m.TermsPage })));
+const ContactPage = lazy(() => import('./pages/ContactPage').then(m => ({ default: m.ContactPage })));
+const WifiToolPage = lazy(() => import('./pages/WifiToolPage').then(m => ({ default: m.WifiToolPage })));
+const ImageToolPage = lazy(() => import('./pages/ImageToolPage').then(m => ({ default: m.ImageToolPage })));
 
-const PageLoader = () => (
-  <div className="min-h-[50vh] flex items-center justify-center">
-    <div className="w-8 h-8 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />
+const SectionLoader = () => (
+  <div className="py-12 flex items-center justify-center">
+    <div className="w-6 h-6 rounded-full border-2 border-fuchsia-500 border-t-transparent animate-spin" />
   </div>
 );
 
@@ -174,53 +176,53 @@ function MainLayout() {
         onOpenPage={handleOpenPage}
       />
 
-      {/* Main Content with React Router & Suspense Code Splitting */}
+      {/* Main Content with React Router */}
       <main className="flex-1">
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route
-              path="/"
-              element={
-                <div className="space-y-12">
-                  <Helmet>
-                    <title>QR Vibe – Free QR Code Generator Online & Custom QR Studio</title>
-                    <meta name="description" content="Create free custom QR codes for text, websites, Wi-Fi, contacts, email, phone numbers, and more. Customize colors, gradients, dots, and logos. Free high-res PNG, SVG, and PDF export." />
-                    <meta property="og:title" content="QR Vibe – Free QR Code Generator Online & Custom QR Studio" />
-                    <meta property="og:description" content="Create free custom QR codes for text, websites, Wi-Fi, contacts, email, phone numbers, and more. Customize colors, gradients, dots, and logos. Free high-res PNG, SVG, and PDF export." />
-                    <meta property="og:url" content="https://qr-vibe.vercel.app/" />
-                    <link rel="canonical" href="https://qr-vibe.vercel.app/" />
-                  </Helmet>
-                  <LocalBusinessSchema />
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <div className="space-y-12">
+                <Helmet>
+                  <title>QR Vibe – Free QR Code Generator Online & Custom QR Studio</title>
+                  <meta name="description" content="Create free custom QR codes for text, websites, Wi-Fi, contacts, email, phone numbers, and more. Customize colors, gradients, dots, and logos. Free high-res PNG, SVG, and PDF export." />
+                  <meta property="og:title" content="QR Vibe – Free QR Code Generator Online & Custom QR Studio" />
+                  <meta property="og:description" content="Create free custom QR codes for text, websites, Wi-Fi, contacts, email, phone numbers, and more. Customize colors, gradients, dots, and logos. Free high-res PNG, SVG, and PDF export." />
+                  <meta property="og:url" content="https://qr-vibe.vercel.app/" />
+                  <link rel="canonical" href="https://qr-vibe.vercel.app/" />
+                </Helmet>
+                <LocalBusinessSchema />
 
-                  {/* H1 immediately under header with 16px spacing */}
-                  <div className="pt-4 pb-1 text-center max-w-xl mx-auto px-4">
-                    <h1 className="text-2xl sm:text-[28px] font-bold font-['Outfit'] tracking-tight text-white mb-1.5">
-                      Free QR Code Generator{' '}
-                      <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">
-                        With Logo
-                      </span>
-                    </h1>
-                    <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
-                      Pick a type, add your logo and colors, check it scans, download in HD. No sign-up.
-                    </p>
-                  </div>
+                {/* H1 immediately under header with 16px spacing */}
+                <div className="pt-4 pb-1 text-center max-w-xl mx-auto px-4">
+                  <h1 className="text-2xl sm:text-[28px] font-bold font-['Outfit'] tracking-tight text-white mb-1.5">
+                    Free QR Code Generator{' '}
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-400 to-cyan-400">
+                      With Logo
+                    </span>
+                  </h1>
+                  <p className="text-xs sm:text-sm text-slate-400 leading-relaxed">
+                    Pick a type, add your logo and colors, check it scans, download in HD. No sign-up.
+                  </p>
+                </div>
 
-                  <div id="generator">
-                    <QRGenerator
-                      t={t}
-                      currentLang={lang}
-                      onOpenBulkModal={() => setIsBulkModalOpen(true)}
-                      onOpenWatchAdModal={() => setIsWatchAdModalOpen(true)}
-                      onOpenProModal={() => setIsProModalOpen(true)}
-                      isHdUnlocked={isHdUnlocked}
-                      onHistoryUpdated={refreshHistoryCount}
-                      reopenItem={reopenItem}
-                      onPresetSelectedFromHero={heroPreset}
-                      initialType={selectedGeneratorType}
-                    />
-                  </div>
+                <div id="generator">
+                  <QRGenerator
+                    t={t}
+                    currentLang={lang}
+                    onOpenBulkModal={() => setIsBulkModalOpen(true)}
+                    onOpenWatchAdModal={() => setIsWatchAdModalOpen(true)}
+                    onOpenProModal={() => setIsProModalOpen(true)}
+                    isHdUnlocked={isHdUnlocked}
+                    onHistoryUpdated={refreshHistoryCount}
+                    reopenItem={reopenItem}
+                    onPresetSelectedFromHero={heroPreset}
+                    initialType={selectedGeneratorType}
+                  />
+                </div>
 
-                  {/* Marketing & SEO sections below generator */}
+                {/* Marketing & SEO sections below generator (Lazy Loaded) */}
+                <Suspense fallback={<SectionLoader />}>
                   <div className="space-y-16 pt-8 border-t border-violet-500/10">
                     <Hero t={t} onSelectPreset={handleHeroPresetSelect} />
                     <HowItWorks t={t} />
@@ -236,12 +238,14 @@ function MainLayout() {
                       <FAQ t={t} />
                     </div>
                   </div>
-                </div>
-              }
-            />
-            <Route
-              path="/qr/:typeSlug"
-              element={
+                </Suspense>
+              </div>
+            }
+          />
+          <Route
+            path="/qr/:typeSlug"
+            element={
+              <Suspense fallback={<SectionLoader />}>
                 <QRTypePage
                   t={t}
                   currentLang={lang}
@@ -251,41 +255,73 @@ function MainLayout() {
                   isHdUnlocked={isHdUnlocked}
                   onHistoryUpdated={refreshHistoryCount}
                 />
-              }
-            />
-            <Route path="/blog" element={<BlogIndexPage />} />
-            <Route path="/blog/:slug" element={<BlogPostPage />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-            <Route path="/privacy" element={<PrivacyPage />} />
-            <Route path="/terms" element={<TermsPage />} />
-            <Route
-              path="*"
-              element={
-                <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 space-y-6">
-                  <h1 className="text-6xl font-black text-fuchsia-400 font-['Outfit']">404</h1>
-                  <h2 className="text-2xl font-bold text-white font-['Outfit']">Page Not Found</h2>
-                  <p className="text-sm text-slate-300 max-w-md">
-                    The page you are looking for doesn't exist or has been moved. Return to QRVibe studio to generate custom QR codes.
-                  </p>
-                  <button
-                    type="button"
-                    onClick={() => navigate('/')}
-                    className="px-6 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white font-bold text-xs shadow-lg shadow-fuchsia-500/25 hover:brightness-110 transition"
-                  >
-                    Back to Home Studio
-                  </button>
-                </div>
-              }
-            />
-          </Routes>
-        </Suspense>
+              </Suspense>
+            }
+          />
+          <Route
+            path="/tools/wifi-qr-generator"
+            element={
+              <Suspense fallback={<SectionLoader />}>
+                <WifiToolPage
+                  t={t}
+                  currentLang={lang}
+                  onOpenBulkModal={() => setIsBulkModalOpen(true)}
+                  onOpenWatchAdModal={() => setIsWatchAdModalOpen(true)}
+                  onOpenProModal={() => setIsProModalOpen(true)}
+                  isHdUnlocked={isHdUnlocked}
+                  onHistoryUpdated={refreshHistoryCount}
+                />
+              </Suspense>
+            }
+          />
+          <Route
+            path="/tools/image-to-qr-code"
+            element={
+              <Suspense fallback={<SectionLoader />}>
+                <ImageToolPage
+                  t={t}
+                  currentLang={lang}
+                  onOpenBulkModal={() => setIsBulkModalOpen(true)}
+                  onOpenWatchAdModal={() => setIsWatchAdModalOpen(true)}
+                  onOpenProModal={() => setIsProModalOpen(true)}
+                  isHdUnlocked={isHdUnlocked}
+                  onHistoryUpdated={refreshHistoryCount}
+                />
+              </Suspense>
+            }
+          />
+          <Route path="/blog" element={<Suspense fallback={<SectionLoader />}><BlogIndexPage /></Suspense>} />
+          <Route path="/blog/:slug" element={<Suspense fallback={<SectionLoader />}><BlogPostPage /></Suspense>} />
+          <Route path="/about" element={<Suspense fallback={<SectionLoader />}><AboutPage /></Suspense>} />
+          <Route path="/contact" element={<Suspense fallback={<SectionLoader />}><ContactPage /></Suspense>} />
+          <Route path="/privacy" element={<Suspense fallback={<SectionLoader />}><PrivacyPage /></Suspense>} />
+          <Route path="/terms" element={<Suspense fallback={<SectionLoader />}><TermsPage /></Suspense>} />
+          <Route
+            path="*"
+            element={
+              <div className="min-h-[70vh] flex flex-col items-center justify-center text-center px-4 space-y-6">
+                <h1 className="text-6xl font-black text-fuchsia-400 font-['Outfit']">404</h1>
+                <h2 className="text-2xl font-bold text-white font-['Outfit']">Page Not Found</h2>
+                <p className="text-sm text-slate-300 max-w-md">
+                  The page you are looking for doesn't exist or has been moved. Return to QRVibe studio to generate custom QR codes.
+                </p>
+                <button
+                  type="button"
+                  onClick={() => navigate('/')}
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-fuchsia-600 to-violet-600 text-white font-bold text-xs shadow-lg shadow-fuchsia-500/25 hover:brightness-110 transition"
+                >
+                  Back to Home Studio
+                </button>
+              </div>
+            }
+          />
+        </Routes>
       </main>
 
       {/* Footer & Legal Links */}
       <Footer t={t} onOpenPage={handleOpenPage} />
 
-      {/* Lazy Loaded Modals & Drawers */}
+      {/* Modals & Drawers */}
       <Suspense fallback={null}>
         <BulkQRModal
           isOpen={isBulkModalOpen}
