@@ -53,6 +53,28 @@ export default defineConfig(() => {
         },
       }),
     ],
+    esbuild: {
+      drop: ['console', 'debugger'],
+    },
+    build: {
+      target: 'es2020',
+      minify: 'esbuild',
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes('node_modules')) {
+              if (id.includes('react') || id.includes('react-dom') || id.includes('react-router-dom')) {
+                return 'vendor-react';
+              }
+              if (id.includes('qr-code-styling') || id.includes('jsqr') || id.includes('jspdf') || id.includes('canvas-confetti')) {
+                return 'vendor-qr';
+              }
+              return 'vendor-other';
+            }
+          },
+        },
+      },
+    },
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
@@ -60,7 +82,6 @@ export default defineConfig(() => {
     },
     envPrefix: ['VITE_'],
     server: {
-      // HMR is disabled in AI Studio via DISABLE_HMR env var.
       hmr: process.env.DISABLE_HMR !== 'true',
       watch: process.env.DISABLE_HMR === 'true' ? null : {},
     },

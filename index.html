@@ -45,6 +45,17 @@
     <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" as="style" />
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
+    <!-- Critical CSS for Instant First Paint (FCP / LCP < 1.0s) -->
+    <style>
+      body { background-color: #0b0813; color: #f8fafc; font-family: 'Outfit', sans-serif; margin: 0; }
+      .sk-header { height: 56px; border-bottom: 1px solid rgba(139,92,246,0.2); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; }
+      .sk-main { max-width: 1280px; margin: 0 auto; padding: 2rem 1rem; text-align: center; }
+      .sk-h1 { font-size: 1.75rem; font-weight: 800; color: #fff; margin-bottom: 0.5rem; }
+      .sk-sub { font-size: 0.875rem; color: #94a3b8; margin-bottom: 2rem; }
+      .sk-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; max-width: 380px; margin: 0 auto; }
+      .sk-tile { height: 76px; background: #120d24; border: 1px solid rgba(255,255,255,0.1); border-radius: 1rem; }
+    </style>
+
     <!-- JSON-LD Structured Data for Google Search & Rich Results -->
     <script type="application/ld+json">
     {
@@ -179,7 +190,24 @@
     </script>
   </head>
   <body class="bg-[#0b0813] text-slate-100 antialiased selection:bg-fuchsia-500 selection:text-white min-h-screen">
-    <div id="root"></div>
+    <div id="root">
+      <header class="sk-header">
+        <div style="display:flex; align-items:center; gap:0.5rem;">
+          <div style="width:32px; height:32px; background:linear-gradient(135deg,#d946ef,#06b6d4); border-radius:8px;"></div>
+          <span style="font-weight:800; font-size:1.25rem; color:#fff;">QR<span style="color:#d946ef">Vibe</span></span>
+        </div>
+      </header>
+      <main class="sk-main">
+        <h1 class="sk-h1">Free QR Code Generator With Logo</h1>
+        <p class="sk-sub">Pick a type, add your logo and colors, check it scans, download in HD. No sign-up.</p>
+        <div class="sk-grid">
+          <div class="sk-tile"></div>
+          <div class="sk-tile"></div>
+          <div class="sk-tile"></div>
+          <div class="sk-tile"></div>
+        </div>
+      </main>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
