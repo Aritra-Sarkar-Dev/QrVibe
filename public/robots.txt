@@ -1,5 +1,8 @@
 User-agent: *
 Allow: /
+Allow: /images/
+Allow: /assets/
 Disallow: /api/
 
 Sitemap: https://qr-vibe.vercel.app/sitemap.xml
+Sitemap: https://qr-vibe.vercel.app/sitemap-images.xml

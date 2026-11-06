@@ -1,8 +1,10 @@
+/**
+ * @license
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
 import React, { useEffect, useRef, useState } from 'react';
-import QRCodeStyling, { Options } from 'qr-code-styling';
-import confetti from 'canvas-confetti';
-import jsPDF from 'jspdf';
-import jsQR from 'jsqr';
+import type { Options } from 'qr-code-styling';
 import {
   Download,
   Share2,
@@ -48,7 +50,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   onHistoryUpdated,
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const qrCodeInstanceRef = useRef<QRCodeStyling | null>(null);
+  const qrCodeInstanceRef = useRef<any | null>(null);
 
   const [copied, setCopied] = useState<boolean>(false);
   const [copiedRaw, setCopiedRaw] = useState<boolean>(false);
@@ -60,14 +62,19 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
   const [isVerified, setIsVerified] = useState<boolean>(true);
   const [verifyMessage, setVerifyMessage] = useState<string>('Scan verified');
 
-  // Trigger celebratory confetti
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 60,
-      spread: 70,
-      origin: { y: 0.7 },
-      colors: ['#d946ef', '#8b5cf6', '#06b6d4', '#facc15'],
-    });
+  // Trigger celebratory confetti dynamically
+  const triggerConfetti = async () => {
+    try {
+      const confetti = (await import('canvas-confetti')).default;
+      confetti({
+        particleCount: 60,
+        spread: 70,
+        origin: { y: 0.7 },
+        colors: ['#d946ef', '#8b5cf6', '#06b6d4', '#facc15'],
+      });
+    } catch (e) {
+      console.error('Confetti error:', e);
+    }
   };
 
   // Convert QRStyleConfig into qr-code-styling options enforcing strict scannability rules
@@ -147,62 +154,76 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     };
   };
 
-  // Initialize, update QR instance, and run jsQR Self-Test Verification
+  // Initialize, update QR instance, and run jsQR Self-Test Verification dynamically
   useEffect(() => {
     if (!payload.trim()) {
       setIsVerified(false);
       return;
     }
     setIsRendering(true);
+    let isMounted = true;
 
-    const options = buildQROptions(320); // Render preview at responsive size
+    (async () => {
+      try {
+        const QRCodeStyling = (await import('qr-code-styling')).default;
+        const jsQR = (await import('jsqr')).default;
 
-    if (!qrCodeInstanceRef.current) {
-      qrCodeInstanceRef.current = new QRCodeStyling(options);
-      if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-        qrCodeInstanceRef.current.append(containerRef.current);
-      }
-    } else {
-      qrCodeInstanceRef.current.update(options);
-    }
+        if (!isMounted) return;
 
-    // Non-blocking async check
-    const checkVerify = () => {
-      setIsRendering(false);
-      if (containerRef.current) {
-        const canvas = containerRef.current.querySelector('canvas');
-        if (canvas) {
-          try {
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-              const decoded = jsQR(imgData.data, canvas.width, canvas.height);
-              if (decoded && decoded.data === payload) {
+        const options = buildQROptions(320); // Render preview at responsive size
+
+        if (!qrCodeInstanceRef.current) {
+          qrCodeInstanceRef.current = new QRCodeStyling(options);
+          if (containerRef.current) {
+            containerRef.current.innerHTML = '';
+            qrCodeInstanceRef.current.append(containerRef.current);
+          }
+        } else {
+          qrCodeInstanceRef.current.update(options);
+        }
+
+        // Non-blocking async check
+        const checkVerify = () => {
+          if (!isMounted) return;
+          setIsRendering(false);
+          if (containerRef.current) {
+            const canvas = containerRef.current.querySelector('canvas');
+            if (canvas) {
+              try {
+                const ctx = canvas.getContext('2d');
+                if (ctx) {
+                  const imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                  const decoded = jsQR(imgData.data, canvas.width, canvas.height);
+                  if (decoded && decoded.data === payload) {
+                    setIsVerified(true);
+                    setVerifyMessage('Scan verified ✓');
+                  } else {
+                    setIsVerified(true);
+                    setVerifyMessage('Scan verified (Optimized)');
+                  }
+                }
+              } catch {
                 setIsVerified(true);
-                setVerifyMessage('Scan verified ✓');
-              } else {
-                setIsVerified(true);
-                setVerifyMessage('Scan verified (Optimized)');
+                setVerifyMessage('Scan verified (Standard)');
               }
             }
-          } catch {
-            setIsVerified(true);
-            setVerifyMessage('Scan verified (Standard)');
           }
+        };
+
+        if ('requestIdleCallback' in window) {
+          (window as any).requestIdleCallback(checkVerify);
+        } else {
+          setTimeout(checkVerify, 30);
         }
+      } catch (err) {
+        console.error('QR Render error:', err);
+        setIsRendering(false);
       }
+    })();
+
+    return () => {
+      isMounted = false;
     };
-
-    const handleId = requestAnimationFrame(() => {
-      if ('requestIdleCallback' in window) {
-        (window as any).requestIdleCallback(checkVerify);
-      } else {
-        setTimeout(checkVerify, 30);
-      }
-    });
-
-    return () => cancelAnimationFrame(handleId);
   }, [payload, styleConfig, isHdUnlocked]);
 
   // Auto-save generated QR to history
@@ -220,19 +241,20 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     onHistoryUpdated();
   };
 
-  // High-res Download handler (PNG, JPEG, SVG) - min 1024px with quiet zone
+  // High-res Download handler (PNG, JPEG, SVG) dynamically
   const handleDownload = async (format: 'png' | 'svg' | 'jpeg') => {
     if (!payload.trim() || !isVerified) return;
     setIsExporting(true);
 
     try {
+      const QRCodeStyling = (await import('qr-code-styling')).default;
       const exportSize = isHdUnlocked ? 2048 : Math.max(1024, styleConfig.size);
       const downloadQR = new QRCodeStyling(buildQROptions(exportSize));
 
       const filename = `QRVibe_${type}_${Date.now()}`;
       await downloadQR.download({ name: filename, extension: format });
 
-      triggerConfetti();
+      await triggerConfetti();
       persistToHistory();
     } catch (err) {
       console.error('Download error:', err);
@@ -241,12 +263,15 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     }
   };
 
-  // PDF Export using jsPDF
+  // PDF Export using jsPDF dynamically
   const handleDownloadPdf = async () => {
     if (!payload.trim() || !isVerified) return;
     setIsExporting(true);
 
     try {
+      const QRCodeStyling = (await import('qr-code-styling')).default;
+      const jsPDF = (await import('jspdf')).default;
+
       const exportSize = isHdUnlocked ? 2048 : 1024;
       const downloadQR = new QRCodeStyling(buildQROptions(exportSize));
       const raw = await downloadQR.getRawData('png');
@@ -254,7 +279,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
 
       if (blob) {
         const reader = new FileReader();
-        reader.onload = () => {
+        reader.onload = async () => {
           const base64data = reader.result as string;
           const pdf = new jsPDF({
             orientation: 'portrait',
@@ -285,7 +310,7 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
           }
 
           pdf.save(`QRVibe_${type}_${Date.now()}.pdf`);
-          triggerConfetti();
+          await triggerConfetti();
           persistToHistory(base64data);
         };
         reader.readAsDataURL(blob);
@@ -307,10 +332,11 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     } catch {}
   };
 
-  // Copy Image to Clipboard
+  // Copy Image to Clipboard dynamically
   const handleCopyImage = async () => {
     if (!payload.trim() || !isVerified) return;
     try {
+      const QRCodeStyling = (await import('qr-code-styling')).default;
       const exportQR = new QRCodeStyling(buildQROptions(1024));
       const raw = await exportQR.getRawData('png');
       const blob = (raw as unknown as Blob) || null;
@@ -335,11 +361,12 @@ export const QRPreview: React.FC<QRPreviewProps> = ({
     }
   };
 
-  // Native Web Share
+  // Native Web Share dynamically
   const handleShare = async () => {
     if (!payload.trim() || !isVerified) return;
     try {
       if (navigator.share) {
+        const QRCodeStyling = (await import('qr-code-styling')).default;
         const exportQR = new QRCodeStyling(buildQROptions(1024));
         const raw = await exportQR.getRawData('png');
         const blob = (raw as unknown as Blob) || null;

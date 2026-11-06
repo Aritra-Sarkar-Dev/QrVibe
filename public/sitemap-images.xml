@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
+  <url>
+    <loc>https://qr-vibe.vercel.app/qr-code-examples</loc>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/wifi-qr-code-cafe-gradient.svg</image:loc>
+      <image:title>WiFi QR code with purple gradient for a cafe</image:title>
+      <image:caption>Scannable WiFi QR code designed for cafe tables with custom gradient.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/wifi-qr-code-office-dark.svg</image:loc>
+      <image:title>Dark mode office WiFi QR code</image:title>
+      <image:caption>Professional dark aesthetic Wi-Fi QR code for corporate reception.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/wifi-qr-code-hotel-modern.svg</image:loc>
+      <image:title>Modern hotel guest WiFi QR code</image:title>
+      <image:caption>Sleek guest network QR code for hotel rooms and lobbies.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/whatsapp-qr-code-green-rounded.svg</image:loc>
+      <image:title>WhatsApp chat QR code with green rounded dots</image:title>
+      <image:caption>Instant WhatsApp click-to-chat QR code for customer support.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/whatsapp-qr-code-chat-cyan.svg</image:loc>
+      <image:title>Cyan WhatsApp direct message QR code</image:title>
+      <image:caption>Direct messaging QR code for online store inquiries.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/whatsapp-qr-code-business-violet.svg</image:loc>
+      <image:title>Violet branded WhatsApp business QR code</image:title>
+      <image:caption>Custom branded WhatsApp contact QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/payment-qr-code-upi-emerald.svg</image:loc>
+      <image:title>Emerald UPI payment QR code for retail checkout</image:title>
+      <image:caption>Instant UPI and digital payment QR code for small shops.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/payment-qr-code-paypal-blue.svg</image:loc>
+      <image:title>PayPal payment link QR code</image:title>
+      <image:caption>Freelancer tip jar and payment checkout QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/payment-qr-code-counter-dark.svg</image:loc>
+      <image:title>Dark aesthetic counter payment QR code</image:title>
+      <image:caption>Laminated checkout counter payment QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/vcard-qr-code-business-card-classic.svg</image:loc>
+      <image:title>Classic vCard digital business card QR code</image:title>
+      <image:caption>Contactless vCard QR code for professional networking.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/vcard-qr-code-executive-gradient.svg</image:loc>
+      <image:title>Executive digital business card QR</image:title>
+      <image:caption>High-end corporate vCard QR code for executives.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/vcard-qr-code-minimalist-white.svg</image:loc>
+      <image:title>Minimalist white vCard contact QR code</image:title>
+      <image:caption>Clean minimalist contact details QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/url-qr-code-website-landing-neon.svg</image:loc>
+      <image:title>Neon website landing page URL QR code</image:title>
+      <image:caption>High-visibility website URL QR code for advertising.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/url-qr-code-portfolio-violet.svg</image:loc>
+      <image:title>Portfolio website QR code with violet gradient</image:title>
+      <image:caption>Creative designer portfolio QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/url-qr-code-storefront-cyan.svg</image:loc>
+      <image:title>E-commerce storefront URL QR code</image:title>
+      <image:caption>Online shop direct link QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/image-qr-code-menu-restaurant.svg</image:loc>
+      <image:title>Restaurant menu image QR code</image:title>
+      <image:caption>Contactless digital menu QR code for dining tables.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/image-qr-code-flyer-event.svg</image:loc>
+      <image:title>Event flyer image QR code</image:title>
+      <image:caption>Promotional event poster and flyer QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/image-qr-code-portfolio-gallery.svg</image:loc>
+      <image:title>Photography portfolio gallery QR code</image:title>
+      <image:caption>Visual gallery QR code for art exhibitions.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/text-qr-code-secret-notes.svg</image:loc>
+      <image:title>Plain text secret notes QR code</image:title>
+      <image:caption>Offline alphanumeric text message QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/text-qr-code-serial-number.svg</image:loc>
+      <image:title>Product serial number QR code</image:title>
+      <image:caption>Inventory tracking and serial code QR matrix.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/email-qr-code-inquiry-contact.svg</image:loc>
+      <image:title>Email mailto inquiry QR code</image:title>
+      <image:caption>Pre-filled customer support email QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/sms-qr-code-support-chat.svg</image:loc>
+      <image:title>SMS text message support QR code</image:title>
+      <image:caption>Instant SMS text message trigger QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/location-qr-code-store-map.svg</image:loc>
+      <image:title>GPS store location map QR code</image:title>
+      <image:caption>Google Maps navigation location QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/calendar-qr-code-event-invite.svg</image:loc>
+      <image:title>Calendar event invite QR code</image:title>
+      <image:caption>Save-the-date calendar appointment QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/instagram-qr-code-profile-gradient.svg</image:loc>
+      <image:title>Instagram profile QR code with vibrant gradient</image:title>
+      <image:caption>Social media growth QR code for Instagram handle.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/youtube-qr-code-channel-red.svg</image:loc>
+      <image:title>YouTube channel subscribe QR code</image:title>
+      <image:caption>Video channel subscription QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/restaurant-menu-qr-table-tent.svg</image:loc>
+      <image:title>Restaurant menu table tent QR code</image:title>
+      <image:caption>Dine-in menu QR code for restaurant tables.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/cafe-wifi-qr-wall-sticker.svg</image:loc>
+      <image:title>Cafe WiFi wall sticker QR code</image:title>
+      <image:caption>Wall-mounted guest Wi-Fi QR code for coffee shops.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/business-card-qr-back-print.svg</image:loc>
+      <image:title>Back print business card vCard QR code</image:title>
+      <image:caption>Physical business card reverse side QR code.</image:caption>
+    </image:image>
+    <image:image>
+      <image:loc>https://qr-vibe.vercel.app/images/qr-examples/social-media-qr-hub-neon.svg</image:loc>
+      <image:title>Neon social media link-in-bio QR code</image:title>
+      <image:caption>All-in-one social media hub QR code.</image:caption>
+    </image:image>
+  </url>
+</urlset>

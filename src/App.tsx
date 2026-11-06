@@ -20,7 +20,7 @@ import { Navbar } from './components/Navbar.tsx';
 import { Footer } from './components/Footer.tsx';
 import { DEFAULT_STYLE_CONFIG } from './utils/presets.ts';
 import { LocalBusinessSchema } from './components/LocalBusinessSchema.tsx';
-import { QRGenerator } from './components/QRGenerator.tsx';
+const QRGenerator = lazy(() => import('./components/QRGenerator.tsx').then(m => ({ default: m.QRGenerator })));
 
 // Lazy loaded below-the-fold components and pages for lightning-fast mobile performance (85+ score)
 const Hero = lazy(() => import('./components/Hero').then(m => ({ default: m.Hero })));
@@ -207,18 +207,20 @@ function MainLayout() {
                 </div>
 
                 <div id="generator">
-                  <QRGenerator
-                    t={t}
-                    currentLang={lang}
-                    onOpenBulkModal={() => setIsBulkModalOpen(true)}
-                    onOpenWatchAdModal={() => setIsWatchAdModalOpen(true)}
-                    onOpenProModal={() => setIsProModalOpen(true)}
-                    isHdUnlocked={isHdUnlocked}
-                    onHistoryUpdated={refreshHistoryCount}
-                    reopenItem={reopenItem}
-                    onPresetSelectedFromHero={heroPreset}
-                    initialType={selectedGeneratorType}
-                  />
+                  <Suspense fallback={<SectionLoader />}>
+                    <QRGenerator
+                      t={t}
+                      currentLang={lang}
+                      onOpenBulkModal={() => setIsBulkModalOpen(true)}
+                      onOpenWatchAdModal={() => setIsWatchAdModalOpen(true)}
+                      onOpenProModal={() => setIsProModalOpen(true)}
+                      isHdUnlocked={isHdUnlocked}
+                      onHistoryUpdated={refreshHistoryCount}
+                      reopenItem={reopenItem}
+                      onPresetSelectedFromHero={heroPreset}
+                      initialType={selectedGeneratorType}
+                    />
+                  </Suspense>
                 </div>
 
                 {/* Marketing & SEO sections below generator (Lazy Loaded) */}

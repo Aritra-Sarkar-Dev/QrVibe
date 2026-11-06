@@ -15,7 +15,7 @@ export default defineConfig(() => {
         includeAssets: ['icon.svg', 'icon-192.png', 'icon-512.png'],
         workbox: {
           maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-          navigateFallbackDenylist: [/^\/ads\.txt$/, /^\/robots\.txt$/, /^\/sitemap\.xml$/, /^\/api\//],
+          navigateFallbackDenylist: [/^\/ads\.txt$/, /^\/robots\.txt$/, /^\/sitemap\.xml$/, /^\/sitemap-images\.xml$/, /^\/api\//],
         },
         manifest: {
           id: '/',
